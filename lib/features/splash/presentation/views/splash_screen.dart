@@ -59,8 +59,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 children: [
                   Image.asset(
                     colors.isDark
-                        ? 'assets/logo/logo_light.png'
-                        : 'assets/logo/logo_dark.png',
+                        ? 'assets/logo/logo_dark.png'
+                        : 'assets/logo/logo_light.png',
                     width: 100.w,
                     height: 100.w,
                     fit: BoxFit.contain,
