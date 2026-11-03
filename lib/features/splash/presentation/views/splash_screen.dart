@@ -14,7 +14,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnim;
   late Animation<double> _scaleAnim;
@@ -25,11 +26,15 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
-    _fadeAnim = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
-    _scaleAnim = Tween<double>(begin: 0.85, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
     );
+    _fadeAnim = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
+    _scaleAnim = Tween<double>(
+      begin: 0.85,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
     _controller.forward();
     context.read<AuthBloc>().add(const AuthCheckRequested());
 
@@ -84,20 +89,24 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     fit: BoxFit.contain,
                   ),
                   SizedBox(height: 20.h),
-                  Text('admitly',
-                      style: AppTextStyles.plusJakartaSans(
-                        fontSize: 30,
-                        fontWeight: FontWeight.w700,
-                        color: colors.text,
-                        letterSpacing: -0.5,
-                      )),
+                  Text(
+                    'admitly',
+                    style: AppTextStyles.plusJakartaSans(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w700,
+                      color: colors.text,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
                   SizedBox(height: 6.h),
-                  Text('School Admission Management',
-                      style: AppTextStyles.plusJakartaSans(
-                        fontSize: 13,
-                        color: colors.grey,
-                        letterSpacing: 0.2,
-                      )),
+                  Text(
+                    'School Admission Management',
+                    style: AppTextStyles.plusJakartaSans(
+                      fontSize: 13,
+                      color: colors.grey,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
                 ],
               ),
             ),
