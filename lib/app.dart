@@ -11,8 +11,7 @@ class App extends StatelessWidget {
       title: 'Admitly',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
-      themeMode: ThemeMode.system,
+      themeMode: ThemeMode.light,
       initialRoute: '/',
       onGenerateRoute: AppRouter.generateRoute,
     );

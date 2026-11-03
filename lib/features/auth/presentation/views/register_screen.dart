@@ -56,7 +56,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         listener: (context, state) {
           if (state is AuthError) {
             AppSnackBar.show(context, state.message, type: SnackBarType.error);
-          } else if (state is AuthAuthenticated) {
+          } else if (state is AuthAuthenticated || state is AuthBiometricSetupAvailable) {
             widget.onRegisterSuccess?.call();
           }
         },

@@ -1,5 +1,6 @@
 import 'package:admitly/features/auth/domain/entities/user_entity.dart';
 import 'package:admitly/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:admitly/features/home/presentation/views/home_screen.dart';
 import 'package:admitly/features/auth/presentation/bloc/auth_event.dart';
 import 'package:admitly/features/auth/presentation/bloc/auth_state.dart';
 import 'package:admitly/features/auth/presentation/views/biometric_screen.dart';
@@ -60,14 +61,7 @@ class _AuthGate extends StatelessWidget {
     );
   }
 
-  Widget _homeForRole(UserEntity user) {
-    // Placeholder — will be replaced with actual dashboards in next push
-    return Scaffold(
-      body: Center(
-        child: Text('Welcome ${user.name} — ${user.role.name}'),
-      ),
-    );
-  }
+  Widget _homeForRole(UserEntity user) => HomeScreen(user: user);
 }
 
 class _LoginWrapper extends StatelessWidget {
