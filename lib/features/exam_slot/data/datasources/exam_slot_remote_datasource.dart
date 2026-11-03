@@ -7,6 +7,8 @@ abstract class ExamSlotRemoteDataSource {
   Future<List<ExamSlotModel>> getAllSlots();
   Future<void> bookSlot({required String slotId, required String studentId});
   Future<void> createSlot(Map<String, dynamic> data);
+  Future<void> updateSlot(String id, Map<String, dynamic> data);
+  Future<void> deleteSlot(String id);
 }
 
 class ExamSlotRemoteDataSourceImpl implements ExamSlotRemoteDataSource {
@@ -51,5 +53,15 @@ class ExamSlotRemoteDataSourceImpl implements ExamSlotRemoteDataSource {
   @override
   Future<void> createSlot(Map<String, dynamic> data) async {
     await _firestore.collection('examSlots').add(data);
+  }
+
+  @override
+  Future<void> updateSlot(String id, Map<String, dynamic> data) async {
+    await _firestore.collection('examSlots').doc(id).update(data);
+  }
+
+  @override
+  Future<void> deleteSlot(String id) async {
+    await _firestore.collection('examSlots').doc(id).delete();
   }
 }

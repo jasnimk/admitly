@@ -4,6 +4,7 @@ import 'package:admitly/features/exam_slot/domain/entities/exam_slot_entity.dart
 import 'package:admitly/features/exam_slot/presentation/bloc/exam_slot_bloc.dart';
 import 'package:admitly/features/exam_slot/presentation/bloc/exam_slot_event.dart';
 import 'package:admitly/features/exam_slot/presentation/bloc/exam_slot_state.dart';
+import 'package:admitly/features/exam_slot/presentation/widgets/slot_detail_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -90,100 +91,110 @@ class _SlotCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isFull = !slot.isAvailable;
-    final statusColor = isFull ? colors.red : colors.green;
+    final statusColor = isFull ? colors.red : colors.primary;
 
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: colors.surface,
+    return Material(
+      color: colors.surface,
+      borderRadius: BorderRadius.circular(14.r),
+      child: InkWell(
         borderRadius: BorderRadius.circular(14.r),
-        border: Border.all(color: colors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding:
-                    EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20.r),
-                ),
-                child: Text(
-                  isFull ? 'Full' : '${slot.remaining} seats left',
-                  style: AppTextStyles.plusJakartaSans(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: statusColor),
-                ),
-              ),
-              const Spacer(),
-              Text(
-                '${slot.bookedCount}/${slot.capacity}',
-                style: AppTextStyles.plusJakartaSans(
-                    fontSize: 12, color: colors.grey),
-              ),
-            ],
+        onTap: () => showSlotDetailSheet(context, slot),
+        child: Container(
+          padding: EdgeInsets.all(16.w),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14.r),
+            border: Border.all(color: colors.border),
           ),
-          SizedBox(height: 10.h),
-          Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.calendar_today_outlined,
-                  size: 14.w, color: colors.grey),
-              SizedBox(width: 6.w),
-              Text(
-                DateFormat('EEE, dd MMM yyyy').format(slot.date),
-                style: AppTextStyles.plusJakartaSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: colors.text),
-              ),
-            ],
-          ),
-          if (slot.timeLabel.isNotEmpty) ...[
-            SizedBox(height: 4.h),
-            Row(
-              children: [
-                Icon(Icons.access_time_rounded,
-                    size: 14.w, color: colors.grey),
-                SizedBox(width: 6.w),
-                Text(slot.timeLabel,
-                    style: AppTextStyles.plusJakartaSans(
-                        fontSize: 12, color: colors.grey)),
-              ],
-            ),
-          ],
-          if (slot.venue.isNotEmpty) ...[
-            SizedBox(height: 4.h),
-            Row(
-              children: [
-                Icon(Icons.location_on_outlined,
-                    size: 14.w, color: colors.grey),
-                SizedBox(width: 6.w),
-                Expanded(
-                  child: Text(slot.venue,
+              Row(
+                children: [
+                  Container(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                    decoration: BoxDecoration(
+                      color: statusColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20.r),
+                    ),
+                    child: Text(
+                      isFull ? 'Full' : '${slot.remaining} seats left',
                       style: AppTextStyles.plusJakartaSans(
-                          fontSize: 12, color: colors.grey),
-                      overflow: TextOverflow.ellipsis),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: statusColor),
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    '${slot.bookedCount}/${slot.capacity}',
+                    style: AppTextStyles.plusJakartaSans(
+                        fontSize: 12, color: colors.grey),
+                  ),
+                  SizedBox(width: 6.w),
+                  Icon(Icons.chevron_right_rounded,
+                      size: 18.w, color: colors.grey),
+                ],
+              ),
+              SizedBox(height: 10.h),
+              Row(
+                children: [
+                  Icon(Icons.calendar_today_outlined,
+                      size: 14.w, color: colors.grey),
+                  SizedBox(width: 6.w),
+                  Text(
+                    DateFormat('EEE, dd MMM yyyy').format(slot.date),
+                    style: AppTextStyles.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: colors.text),
+                  ),
+                ],
+              ),
+              if (slot.timeLabel.isNotEmpty) ...[
+                SizedBox(height: 4.h),
+                Row(
+                  children: [
+                    Icon(Icons.access_time_rounded,
+                        size: 14.w, color: colors.grey),
+                    SizedBox(width: 6.w),
+                    Text(slot.timeLabel,
+                        style: AppTextStyles.plusJakartaSans(
+                            fontSize: 12, color: colors.grey)),
+                  ],
                 ),
               ],
-            ),
-          ],
-          SizedBox(height: 10.h),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4.r),
-            child: LinearProgressIndicator(
-              value: slot.capacity > 0
-                  ? slot.bookedCount / slot.capacity
-                  : 0.0,
-              minHeight: 4.h,
-              backgroundColor: colors.border,
-              valueColor: AlwaysStoppedAnimation<Color>(statusColor),
-            ),
+              if (slot.venue.isNotEmpty) ...[
+                SizedBox(height: 4.h),
+                Row(
+                  children: [
+                    Icon(Icons.location_on_outlined,
+                        size: 14.w, color: colors.grey),
+                    SizedBox(width: 6.w),
+                    Expanded(
+                      child: Text(slot.venue,
+                          style: AppTextStyles.plusJakartaSans(
+                              fontSize: 12, color: colors.grey),
+                          overflow: TextOverflow.ellipsis),
+                    ),
+                  ],
+                ),
+              ],
+              SizedBox(height: 10.h),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4.r),
+                child: LinearProgressIndicator(
+                  value: slot.capacity > 0
+                      ? slot.bookedCount / slot.capacity
+                      : 0.0,
+                  minHeight: 4.h,
+                  backgroundColor: colors.border,
+                  valueColor: AlwaysStoppedAnimation<Color>(statusColor),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

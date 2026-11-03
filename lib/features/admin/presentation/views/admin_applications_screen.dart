@@ -20,13 +20,32 @@ class AdminApplicationsScreen extends StatefulWidget {
       _AdminApplicationsScreenState();
 }
 
-class _AdminApplicationsScreenState extends State<AdminApplicationsScreen> {
-  ApplicationStatus? _filter;
+class _AdminApplicationsScreenState extends State<AdminApplicationsScreen>
+    with SingleTickerProviderStateMixin {
+  static const _tabs = <(ApplicationStatus?, String)>[
+    (null, 'All'),
+    (ApplicationStatus.applicationCreated, 'Pending'),
+    (ApplicationStatus.feePaid, 'Fee Paid'),
+    (ApplicationStatus.feeSkipped, 'Fee Skipped'),
+    (ApplicationStatus.slotBooked, 'Slot Booked'),
+    (ApplicationStatus.examCompleted, 'Exam Done'),
+    (ApplicationStatus.admissionCompleted, 'Admitted'),
+  ];
+
+  late final TabController _tabCtrl;
 
   @override
   void initState() {
     super.initState();
+    _tabCtrl = TabController(length: _tabs.length, vsync: this);
+    _tabCtrl.addListener(() => setState(() {}));
     context.read<StudentBloc>().add(const StudentAllLoadRequested());
+  }
+
+  @override
+  void dispose() {
+    _tabCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _openDetail(StudentEntity student) async {
@@ -49,41 +68,22 @@ class _AdminApplicationsScreenState extends State<AdminApplicationsScreen> {
 
     return BlocBuilder<StudentBloc, StudentState>(
       builder: (context, state) {
-        final all =
-            state is StudentLoaded ? state.students : <StudentEntity>[];
-        final filtered = _filter == null
+        final all = state is StudentLoaded ? state.students : <StudentEntity>[];
+        final activeStatus = _tabs[_tabCtrl.index].$1;
+        final filtered = activeStatus == null
             ? all
-            : all.where((s) => s.status == _filter).toList();
+            : all.where((s) => s.status == activeStatus).toList();
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _FilterBar(
+            _FilterTabBar(
+              controller: _tabCtrl,
+              tabs: _tabs,
+              all: all,
               colors: colors,
-              selected: _filter,
-              onSelect: (f) => setState(() => _filter = f),
-              counts: {
-                null: all.length,
-                ApplicationStatus.applicationCreated: all
-                    .where((s) =>
-                        s.status == ApplicationStatus.applicationCreated)
-                    .length,
-                ApplicationStatus.feePaid: all
-                    .where((s) => s.status == ApplicationStatus.feePaid)
-                    .length,
-                ApplicationStatus.slotBooked: all
-                    .where((s) => s.status == ApplicationStatus.slotBooked)
-                    .length,
-                ApplicationStatus.examCompleted: all
-                    .where(
-                        (s) => s.status == ApplicationStatus.examCompleted)
-                    .length,
-                ApplicationStatus.admissionCompleted: all
-                    .where((s) =>
-                        s.status == ApplicationStatus.admissionCompleted)
-                    .length,
-              },
             ),
+            Divider(height: 1, color: colors.border),
             Expanded(
               child: state is StudentLoading
                   ? Center(
@@ -95,11 +95,9 @@ class _AdminApplicationsScreenState extends State<AdminApplicationsScreen> {
                               .read<StudentBloc>()
                               .add(const StudentAllLoadRequested()),
                           child: ListView.separated(
-                            padding: EdgeInsets.fromLTRB(
-                                16.w, 12.h, 16.w, 100.h),
+                            padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 100.h),
                             itemCount: filtered.length,
-                            separatorBuilder: (_, __) =>
-                                SizedBox(height: 10.h),
+                            separatorBuilder: (_, __) => SizedBox(height: 10.h),
                             itemBuilder: (_, i) => StudentCard(
                               student: filtered[i],
                               onTap: () => _openDetail(filtered[i]),
@@ -114,67 +112,60 @@ class _AdminApplicationsScreenState extends State<AdminApplicationsScreen> {
   }
 }
 
-class _FilterBar extends StatelessWidget {
-  const _FilterBar({
+class _FilterTabBar extends StatelessWidget {
+  const _FilterTabBar({
+    required this.controller,
+    required this.tabs,
+    required this.all,
     required this.colors,
-    required this.selected,
-    required this.onSelect,
-    required this.counts,
   });
+  final TabController controller;
+  final List<(ApplicationStatus?, String)> tabs;
+  final List<StudentEntity> all;
   final AppColors colors;
-  final ApplicationStatus? selected;
-  final ValueChanged<ApplicationStatus?> onSelect;
-  final Map<ApplicationStatus?, int> counts;
 
-  static const _chips = <(ApplicationStatus?, String)>[
-    (null, 'All'),
-    (ApplicationStatus.applicationCreated, 'Pending'),
-    (ApplicationStatus.feePaid, 'Fee Paid'),
-    (ApplicationStatus.slotBooked, 'Slot Booked'),
-    (ApplicationStatus.examCompleted, 'Exam Done'),
-    (ApplicationStatus.admissionCompleted, 'Admitted'),
-  ];
+  int _count(ApplicationStatus? status) => status == null
+      ? all.length
+      : all.where((s) => s.status == status).length;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 44.h,
-      child: ListView.separated(
-        padding: EdgeInsets.symmetric(horizontal: 16.w),
-        scrollDirection: Axis.horizontal,
-        itemCount: _chips.length,
-        separatorBuilder: (_, __) => SizedBox(width: 8.w),
-        itemBuilder: (_, i) {
-          final (status, label) = _chips[i];
-          final active = selected == status;
-          final count = counts[status] ?? 0;
-          return GestureDetector(
-            onTap: () => onSelect(status),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              padding:
-                  EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
-              decoration: BoxDecoration(
-                color: active
-                    ? colors.primary
-                    : colors.primary.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(20.r),
-                border: Border.all(
-                    color: active
-                        ? colors.primary
-                        : colors.primary.withValues(alpha: 0.12)),
-              ),
-              child: Text(
-                '$label ($count)',
-                style: AppTextStyles.plusJakartaSans(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: active ? Colors.white : colors.primary,
-                ),
-              ),
-            ),
-          );
-        },
+    return Container(
+      color: colors.background,
+      padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 10.h),
+      child: Container(
+        height: 40.h,
+        decoration: BoxDecoration(
+          color: colors.primary,
+          borderRadius: BorderRadius.circular(22.r),
+          border: Border.all(color: colors.primary, width: 1.5),
+        ),
+        child: TabBar(
+          controller: controller,
+          isScrollable: true,
+          tabAlignment: TabAlignment.start,
+          dividerColor: Colors.transparent,
+          indicator: BoxDecoration(
+            color: colors.canvas,
+            borderRadius: BorderRadius.circular(20.r),
+          ),
+          indicatorSize: TabBarIndicatorSize.tab,
+          indicatorPadding: EdgeInsets.all(3.r),
+          labelColor: colors.primary,
+          unselectedLabelColor: colors.mist,
+          labelStyle: AppTextStyles.plusJakartaSans(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+          unselectedLabelStyle: AppTextStyles.plusJakartaSans(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+          padding: EdgeInsets.symmetric(horizontal: 4.w),
+          tabs: tabs
+              .map((t) => Tab(text: '${t.$2} (${_count(t.$1)})'))
+              .toList(),
+        ),
       ),
     );
   }

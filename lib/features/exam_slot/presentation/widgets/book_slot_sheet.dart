@@ -306,7 +306,7 @@ class _SlotTile extends StatelessWidget {
                   style: AppTextStyles.plusJakartaSans(
                     fontSize: 11,
                     color:
-                        slot.remaining < 5 ? colors.orange : colors.grey,
+                        slot.remaining < 5 ? colors.accent : colors.grey,
                   ),
                 ),
               ],

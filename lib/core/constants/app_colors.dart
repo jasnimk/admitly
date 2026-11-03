@@ -16,12 +16,12 @@ class AppColors {
   Color get mist => const Color(0xFFCDD7E5);
   Color get canvas => const Color(0xFFF0F2F4);
 
-  Color get green => isDark ? const Color(0xFF81C784) : const Color(0xFF10B981);
-  Color get success => green;
+  // Palette-only semantic aliases — no green, blue, orange
+  Color get accent => secondary;   // Slate: strong secondary highlight
+  Color get subtle => fog;         // Fog: de-emphasised/neutral
+  Color get success => primary;    // Midnight: completed/confirmed
   Color get red => isDark ? const Color(0xFFEF5350) : const Color(0xFFEF4444);
   Color get error => red;
-  Color get orange => isDark ? const Color(0xFFFFB74D) : const Color(0xFFF97316);
-  Color get blue => isDark ? const Color(0xFF64B5F6) : const Color(0xFF2563EB);
 
   Color get black => isDark ? Colors.white : const Color(0xFF15171F);
   Color get white => isDark ? const Color(0xFF15171F) : Colors.white;

@@ -30,6 +30,10 @@ class ExamSlotCreateSuccess extends ExamSlotState {
   const ExamSlotCreateSuccess();
 }
 
+class ExamSlotUpdateSuccess extends ExamSlotState {
+  const ExamSlotUpdateSuccess();
+}
+
 class ExamSlotError extends ExamSlotState {
   const ExamSlotError(this.message);
   final String message;

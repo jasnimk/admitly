@@ -2,10 +2,13 @@ import 'package:admitly/core/constants/app_colors.dart';
 import 'package:admitly/core/constants/app_text_styles.dart';
 import 'package:admitly/core/widgets/app_button.dart';
 import 'package:admitly/core/widgets/app_snack_bar.dart';
+import 'package:admitly/features/payment/domain/entities/payment_entity.dart';
+import 'package:admitly/features/payment/domain/usecases/create_payment_usecase.dart';
 import 'package:admitly/features/student/domain/entities/student_entity.dart';
 import 'package:admitly/features/student/presentation/bloc/student_bloc.dart';
 import 'package:admitly/features/student/presentation/bloc/student_event.dart';
 import 'package:admitly/features/student/presentation/bloc/student_state.dart';
+import 'package:admitly/injection_container.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -35,6 +38,15 @@ class _RegistrationFeeSheet extends StatelessWidget {
       paymentStatus: 'paid',
     );
     context.read<StudentBloc>().add(StudentUpdateRequested(updated));
+
+    sl<CreatePaymentUseCase>().call(PaymentEntity(
+      id: '',
+      studentId: student.id,
+      parentId: student.parentId,
+      amount: 500,
+      status: 'paid',
+      paidAt: DateTime.now(),
+    ));
   }
 
   void _skip(BuildContext context) {

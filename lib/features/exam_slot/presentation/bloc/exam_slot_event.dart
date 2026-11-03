@@ -29,3 +29,17 @@ class ExamSlotCreateRequested extends ExamSlotEvent {
   @override
   List<Object?> get props => [slot];
 }
+
+class ExamSlotUpdateRequested extends ExamSlotEvent {
+  const ExamSlotUpdateRequested(this.slot);
+  final ExamSlotEntity slot;
+  @override
+  List<Object?> get props => [slot];
+}
+
+class ExamSlotDeleteRequested extends ExamSlotEvent {
+  const ExamSlotDeleteRequested(this.slotId);
+  final String slotId;
+  @override
+  List<Object?> get props => [slotId];
+}

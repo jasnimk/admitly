@@ -179,9 +179,9 @@ class _StatsRow extends StatelessWidget {
       children: [
         _StatCard(label: 'Total', value: '$total', color: colors.primary, colors: colors),
         SizedBox(width: 10.w),
-        _StatCard(label: 'In Progress', value: '$inProgress', color: colors.blue, colors: colors),
+        _StatCard(label: 'In Progress', value: '$inProgress', color: colors.accent, colors: colors),
         SizedBox(width: 10.w),
-        _StatCard(label: 'Admitted', value: '$admitted', color: colors.green, colors: colors),
+        _StatCard(label: 'Admitted', value: '$admitted', color: colors.primary, colors: colors),
       ],
     );
   }

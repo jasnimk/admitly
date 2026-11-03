@@ -35,6 +35,8 @@ class StudentEntity extends Equatable {
     this.examSlotId,
     this.examScore,
     this.assignedCourse,
+    this.parentEmail,
+    this.parentPhone,
   });
 
   final String id;
@@ -50,6 +52,8 @@ class StudentEntity extends Equatable {
   final String? examSlotId;
   final int? examScore;
   final String? assignedCourse;
+  final String? parentEmail;
+  final String? parentPhone;
 
   bool get isEditable => status == ApplicationStatus.applicationCreated ||
       status == ApplicationStatus.feePaid ||
@@ -69,6 +73,8 @@ class StudentEntity extends Equatable {
     String? examSlotId,
     int? examScore,
     String? assignedCourse,
+    String? parentEmail,
+    String? parentPhone,
   }) =>
       StudentEntity(
         id: id ?? this.id,
@@ -84,12 +90,14 @@ class StudentEntity extends Equatable {
         examSlotId: examSlotId ?? this.examSlotId,
         examScore: examScore ?? this.examScore,
         assignedCourse: assignedCourse ?? this.assignedCourse,
+        parentEmail: parentEmail ?? this.parentEmail,
+        parentPhone: parentPhone ?? this.parentPhone,
       );
 
   @override
   List<Object?> get props => [
         id, parentId, name, dateOfBirth, gender, previousSchool,
         applyingGrade, status, createdAt, paymentStatus,
-        examSlotId, examScore, assignedCourse,
+        examSlotId, examScore, assignedCourse, parentEmail, parentPhone,
       ];
 }

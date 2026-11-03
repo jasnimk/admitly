@@ -55,4 +55,29 @@ class ExamSlotRepositoryImpl implements ExamSlotRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> updateSlot(ExamSlotEntity slot) async {
+    try {
+      await _dataSource.updateSlot(slot.id, {
+        'date': Timestamp.fromDate(slot.date),
+        'timeLabel': slot.timeLabel,
+        'venue': slot.venue,
+        'capacity': slot.capacity,
+      });
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteSlot(String slotId) async {
+    try {
+      await _dataSource.deleteSlot(slotId);
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

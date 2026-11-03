@@ -28,9 +28,9 @@ class AppFullScreenLoader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ColoredBox(
-      color: Colors.black26,
-      child: AppLoader(),
+    return ColoredBox(
+      color: context.colors.text.withValues(alpha: 0.18),
+      child: const AppLoader(),
     );
   }
 }
