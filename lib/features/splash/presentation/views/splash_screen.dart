@@ -46,7 +46,11 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _onAuthState(AuthState state) {
-    if (state is AuthAuthenticated || state is AuthUnauthenticated) {
+    if (state is AuthAuthenticated ||
+        state is AuthUnauthenticated ||
+        state is AuthPendingVerification ||
+        state is AuthBiometricSetupAvailable ||
+        state is AuthBiometricRequired) {
       _authDone = true;
       _tryNavigate();
     }

@@ -11,6 +11,54 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => Size.fromHeight(56.h);
 
+  Future<void> _confirmLogout(BuildContext context) async {
+    final colors = context.colors;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        title: Text(
+          'Sign out?',
+          style: AppTextStyles.plusJakartaSans(
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            color: colors.text,
+          ),
+        ),
+        content: Text(
+          'You will be signed out of your account.',
+          style: AppTextStyles.plusJakartaSans(fontSize: 14, color: colors.grey),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              'Cancel',
+              style: AppTextStyles.plusJakartaSans(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: colors.grey,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              'Sign out',
+              style: AppTextStyles.plusJakartaSans(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: colors.primary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) onLogout();
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
@@ -29,7 +77,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         IconButton(
-          onPressed: onLogout,
+          onPressed: () => _confirmLogout(context),
           icon: Icon(Icons.logout_rounded, size: 22.w, color: colors.grey),
           tooltip: 'Logout',
         ),

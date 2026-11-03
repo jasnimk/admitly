@@ -16,6 +16,7 @@ abstract class AuthRemoteDataSource {
   Future<UserModel> signInWithGoogle();
   Future<void> logout();
   Future<UserModel?> getCurrentUser();
+  Future<UserModel> refreshUser(String uid);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -137,6 +138,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     if (user == null) return null;
     return await _fetchUserFromFirestore(user.uid);
   }
+
+  @override
+  Future<UserModel> refreshUser(String uid) => _fetchUserFromFirestore(uid);
 
   Future<UserModel> _fetchUserFromFirestore(String uid) async {
     final doc = await _firestore.collection('users').doc(uid).get();

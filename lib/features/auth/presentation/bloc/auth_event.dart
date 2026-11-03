@@ -60,3 +60,11 @@ class AuthBiometricSetupRequested extends AuthEvent {
   @override
   List<Object?> get props => [user, enable];
 }
+
+class AuthCheckVerificationRequested extends AuthEvent {
+  const AuthCheckVerificationRequested(this.user);
+  final UserEntity user;
+
+  @override
+  List<Object?> get props => [user];
+}

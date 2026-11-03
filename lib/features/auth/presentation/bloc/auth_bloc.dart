@@ -3,6 +3,7 @@ import 'package:admitly/core/services/secure_storage_service.dart';
 import 'package:admitly/core/usecases/usecase.dart';
 import 'package:admitly/core/utils/app_logger.dart';
 import 'package:admitly/features/auth/domain/entities/user_entity.dart';
+import 'package:admitly/features/auth/domain/repositories/auth_repository.dart';
 import 'package:admitly/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:admitly/features/auth/domain/usecases/google_signin_usecase.dart';
 import 'package:admitly/features/auth/domain/usecases/login_usecase.dart';
@@ -21,6 +22,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required GetCurrentUserUseCase getCurrentUserUseCase,
     required BiometricService biometricService,
     required SecureStorageService secureStorageService,
+    required AuthRepository authRepository,
   })  : _login = loginUseCase,
         _register = registerUseCase,
         _googleSignIn = googleSignInUseCase,
@@ -28,6 +30,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         _getCurrentUser = getCurrentUserUseCase,
         _biometric = biometricService,
         _storage = secureStorageService,
+        _repository = authRepository,
         super(const AuthInitial()) {
     on<AuthCheckRequested>(_onCheckRequested);
     on<AuthLoginRequested>(_onLoginRequested);
@@ -36,6 +39,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthLogoutRequested>(_onLogoutRequested);
     on<AuthBiometricLoginRequested>(_onBiometricLoginRequested);
     on<AuthBiometricSetupRequested>(_onBiometricSetupRequested);
+    on<AuthCheckVerificationRequested>(_onCheckVerification);
   }
 
   final LoginUseCase _login;
@@ -45,6 +49,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final GetCurrentUserUseCase _getCurrentUser;
   final BiometricService _biometric;
   final SecureStorageService _storage;
+  final AuthRepository _repository;
 
   Future<void> _onCheckRequested(AuthCheckRequested event, Emitter<AuthState> emit) async {
     emit(const AuthLoading());
@@ -58,9 +63,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         }
         final biometricEnabled = await _storage.isBiometricEnabled();
         if (biometricEnabled && await _biometric.isAvailable()) {
-          emit(AuthBiometricRequired(user));
+          if (!user.isVerified) {
+            emit(AuthPendingVerification(user));
+          } else {
+            emit(AuthBiometricRequired(user));
+          }
         } else {
-          emit(AuthAuthenticated(user));
+          await _emitPostAuthState(user, emit);
         }
       },
     );
@@ -133,6 +142,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     await _storage.setBiometricEnabled(event.enable);
     appLogger.i('Biometric ${event.enable ? 'enabled' : 'skipped'} for ${event.user.uid}');
     emit(AuthAuthenticated(event.user));
+  }
+
+  Future<void> _onCheckVerification(AuthCheckVerificationRequested event, Emitter<AuthState> emit) async {
+    emit(const AuthLoading());
+    final result = await _repository.refreshUser(event.user.uid);
+    await result.fold(
+      (failure) async => emit(AuthPendingVerification(event.user)),
+      (user) async {
+        appLogger.i('Verification check: isVerified=${user.isVerified}');
+        await _emitPostAuthState(user, emit);
+      },
+    );
   }
 
   Future<void> _emitPostAuthState(UserEntity user, Emitter<AuthState> emit) async {

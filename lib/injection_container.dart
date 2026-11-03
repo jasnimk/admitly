@@ -54,5 +54,6 @@ Future<void> initDependencies() async {
         getCurrentUserUseCase: sl(),
         biometricService: sl(),
         secureStorageService: sl(),
+        authRepository: sl(),
       ));
 }
