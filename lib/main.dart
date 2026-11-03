@@ -1,10 +1,13 @@
 import 'package:admitly/app.dart';
+import 'package:admitly/injection_container.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Firebase.initializeApp() will go here after firebase_options are generated
+  // TODO: Uncomment after running `flutterfire configure`
+  // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await initDependencies();
   runApp(const AppRoot());
 }
 
