@@ -121,10 +121,159 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
             ],
             SizedBox(height: 24.h),
             if (isParent) _parentActions(colors),
+            if (!isParent) _adminActions(colors),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _onEnterScore() async {
+    final score = await _showScoreDialog();
+    if (score == null || !mounted) return;
+    context.read<StudentBloc>().add(
+          StudentUpdateRequested(
+            _student.copyWith(
+              examScore: score,
+              status: ApplicationStatus.examCompleted,
+            ),
+          ),
+        );
+  }
+
+  Future<int?> _showScoreDialog() async {
+    final ctrl = TextEditingController();
+    return showDialog<int>(
+      context: context,
+      builder: (ctx) {
+        final colors = ctx.colors;
+        return AlertDialog(
+          backgroundColor: colors.surface,
+          title: Text('Enter Exam Score',
+              style: AppTextStyles.plusJakartaSans(
+                  fontSize: 17, fontWeight: FontWeight.w700, color: colors.text)),
+          content: TextField(
+            controller: ctrl,
+            keyboardType: TextInputType.number,
+            autofocus: true,
+            style: AppTextStyles.plusJakartaSans(fontSize: 14, color: colors.text),
+            decoration: InputDecoration(
+              hintText: 'Score out of 100',
+              hintStyle: AppTextStyles.plusJakartaSans(fontSize: 14, color: colors.grey),
+              suffixText: '/ 100',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('Cancel',
+                  style: AppTextStyles.plusJakartaSans(
+                      fontSize: 13, color: colors.grey)),
+            ),
+            TextButton(
+              onPressed: () {
+                final v = int.tryParse(ctrl.text.trim());
+                if (v != null && v >= 0 && v <= 100) {
+                  Navigator.pop(ctx, v);
+                }
+              },
+              child: Text('Save',
+                  style: AppTextStyles.plusJakartaSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: colors.primary)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _onAssignCourse() async {
+    final course = await _showCourseDialog();
+    if (course == null || !mounted) return;
+    context.read<StudentBloc>().add(
+          StudentUpdateRequested(
+            _student.copyWith(assignedCourse: course),
+          ),
+        );
+  }
+
+  Future<String?> _showCourseDialog() async {
+    final ctrl = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) {
+        final colors = ctx.colors;
+        return AlertDialog(
+          backgroundColor: colors.surface,
+          title: Text('Assign Course',
+              style: AppTextStyles.plusJakartaSans(
+                  fontSize: 17, fontWeight: FontWeight.w700, color: colors.text)),
+          content: TextField(
+            controller: ctrl,
+            autofocus: true,
+            style: AppTextStyles.plusJakartaSans(fontSize: 14, color: colors.text),
+            decoration: InputDecoration(
+              hintText: 'e.g. Grade 6 — Science',
+              hintStyle: AppTextStyles.plusJakartaSans(fontSize: 14, color: colors.grey),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('Cancel',
+                  style: AppTextStyles.plusJakartaSans(
+                      fontSize: 13, color: colors.grey)),
+            ),
+            TextButton(
+              onPressed: () {
+                final v = ctrl.text.trim();
+                if (v.isNotEmpty) Navigator.pop(ctx, v);
+              },
+              child: Text('Assign',
+                  style: AppTextStyles.plusJakartaSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: colors.primary)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _onCompleteAdmission() {
+    context.read<StudentBloc>().add(
+          StudentUpdateRequested(
+            _student.copyWith(status: ApplicationStatus.admissionCompleted),
+          ),
+        );
+  }
+
+  Widget _adminActions(AppColors colors) {
+    return switch (_student.status) {
+      ApplicationStatus.slotBooked => _ActionButton(
+          label: 'Enter Exam Score',
+          icon: Icons.quiz_outlined,
+          color: colors.orange,
+          onTap: _onEnterScore,
+        ),
+      ApplicationStatus.examCompleted when _student.assignedCourse == null =>
+        _ActionButton(
+          label: 'Assign Course',
+          icon: Icons.book_outlined,
+          color: colors.blue,
+          onTap: _onAssignCourse,
+        ),
+      ApplicationStatus.examCompleted => _ActionButton(
+          label: 'Complete Admission',
+          icon: Icons.check_circle_outline_rounded,
+          color: colors.green,
+          onTap: _onCompleteAdmission,
+        ),
+      _ => const SizedBox.shrink(),
+    };
   }
 
   Widget _parentActions(AppColors colors) {
