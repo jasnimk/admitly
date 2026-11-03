@@ -1,0 +1,77 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function userRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isAdmissionTeam() {
+      return isAuth() && userRole() == 'admissionTeam';
+    }
+
+    function isParent() {
+      return isAuth() && userRole() == 'parent';
+    }
+
+    function isOwner(uid) {
+      return isAuth() && request.auth.uid == uid;
+    }
+
+    // ── Users ─────────────────────────────────────────────────────────────────
+    // Each user can read and write their own document.
+    // Admission team can read any user document (e.g. to display parent info).
+
+    match /users/{userId} {
+      allow read:   if isOwner(userId) || isAdmissionTeam();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if false;
+    }
+
+    // ── Students ──────────────────────────────────────────────────────────────
+    // Parents can read and write their own students (parentId == uid).
+    // Admission team can read and update any student (status, score, course).
+    // No one can delete student records.
+
+    match /students/{studentId} {
+      allow read: if isAuth() && (
+        isAdmissionTeam() ||
+        resource.data.parentId == request.auth.uid
+      );
+
+      // Parent creates — must own the record and start at applicationCreated
+      allow create: if isParent()
+        && request.resource.data.parentId == request.auth.uid
+        && request.resource.data.status == 'applicationCreated';
+
+      // Parent updates their own student (fee payment, slot booking steps)
+      allow update: if isAuth() && (
+        isAdmissionTeam() ||
+        (isParent() && resource.data.parentId == request.auth.uid)
+      );
+
+      allow delete: if false;
+    }
+
+    // ── Exam Slots ────────────────────────────────────────────────────────────
+    // Any authenticated user can read slots (needed for parent booking UI).
+    // Only admission team can create slots.
+    // Any authenticated user can update a slot — required for the client-side
+    // booking transaction that increments bookedCount. In production this would
+    // move to a Cloud Function with field-level validation.
+
+    match /examSlots/{slotId} {
+      allow read:   if isAuth();
+      allow create: if isAdmissionTeam();
+      allow update: if isAuth();
+      allow delete: if false;
+    }
+  }
+}
