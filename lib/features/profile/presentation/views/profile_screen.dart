@@ -3,10 +3,12 @@ import 'package:admitly/core/constants/app_text_styles.dart';
 import 'package:admitly/core/services/biometric_service.dart';
 import 'package:admitly/core/services/secure_storage_service.dart';
 import 'package:admitly/core/widgets/app_snack_bar.dart';
+import 'package:admitly/dev/dev_seeder.dart';
 import 'package:admitly/features/auth/domain/entities/user_entity.dart';
 import 'package:admitly/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:admitly/features/auth/presentation/bloc/auth_event.dart';
 import 'package:admitly/injection_container.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -37,6 +39,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _biometricAvailable = available;
       _biometricEnabled = enabled;
     });
+  }
+
+  Future<void> _seedData() async {
+    await DevSeeder.seed();
+    if (!mounted) return;
+    AppSnackBar.show(context, 'Dummy data seeded!', type: SnackBarType.success);
   }
 
   Future<void> _toggleBiometric(bool value) async {
@@ -138,6 +146,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ],
         ),
+        if (kDebugMode) ...[
+          SizedBox(height: 16.h),
+          _SectionCard(
+            colors: colors,
+            children: [
+              _ActionTile(
+                icon: Icons.science_outlined,
+                label: 'Seed Dummy Data',
+                color: colors.orange,
+                colors: colors,
+                onTap: _seedData,
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }
