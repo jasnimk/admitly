@@ -55,6 +55,37 @@ class StudentEntity extends Equatable {
       status == ApplicationStatus.feePaid ||
       status == ApplicationStatus.feeSkipped;
 
+  StudentEntity copyWith({
+    String? id,
+    String? parentId,
+    String? name,
+    DateTime? dateOfBirth,
+    Gender? gender,
+    String? previousSchool,
+    String? applyingGrade,
+    ApplicationStatus? status,
+    DateTime? createdAt,
+    String? paymentStatus,
+    String? examSlotId,
+    int? examScore,
+    String? assignedCourse,
+  }) =>
+      StudentEntity(
+        id: id ?? this.id,
+        parentId: parentId ?? this.parentId,
+        name: name ?? this.name,
+        dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+        gender: gender ?? this.gender,
+        previousSchool: previousSchool ?? this.previousSchool,
+        applyingGrade: applyingGrade ?? this.applyingGrade,
+        status: status ?? this.status,
+        createdAt: createdAt ?? this.createdAt,
+        paymentStatus: paymentStatus ?? this.paymentStatus,
+        examSlotId: examSlotId ?? this.examSlotId,
+        examScore: examScore ?? this.examScore,
+        assignedCourse: assignedCourse ?? this.assignedCourse,
+      );
+
   @override
   List<Object?> get props => [
         id, parentId, name, dateOfBirth, gender, previousSchool,
