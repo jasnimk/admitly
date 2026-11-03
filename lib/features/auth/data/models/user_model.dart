@@ -6,14 +6,17 @@ class UserModel extends UserEntity {
     required super.email,
     required super.name,
     required super.role,
+    super.isVerified = true,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
+    final role = map['role'] == 'admissionTeam' ? UserRole.admissionTeam : UserRole.parent;
     return UserModel(
       uid: map['uid'] as String,
       email: map['email'] as String,
       name: map['name'] as String? ?? '',
-      role: map['role'] == 'admissionTeam' ? UserRole.admissionTeam : UserRole.parent,
+      role: role,
+      isVerified: map['isVerified'] as bool? ?? (role == UserRole.parent),
     );
   }
 
@@ -22,5 +25,6 @@ class UserModel extends UserEntity {
         'email': email,
         'name': name,
         'role': role == UserRole.admissionTeam ? 'admissionTeam' : 'parent',
+        'isVerified': isVerified,
       };
 }

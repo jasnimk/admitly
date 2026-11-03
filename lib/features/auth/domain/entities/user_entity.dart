@@ -8,13 +8,15 @@ class UserEntity extends Equatable {
     required this.email,
     required this.name,
     required this.role,
+    this.isVerified = true,
   });
 
   final String uid;
   final String email;
   final String name;
   final UserRole role;
+  final bool isVerified;
 
   @override
-  List<Object> get props => [uid, email, name, role];
+  List<Object> get props => [uid, email, name, role, isVerified];
 }

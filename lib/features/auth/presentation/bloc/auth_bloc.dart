@@ -84,7 +84,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onRegisterRequested(AuthRegisterRequested event, Emitter<AuthState> emit) async {
     emit(const AuthLoading());
     final result = await _register(
-      RegisterParams(email: event.email, password: event.password, name: event.name),
+      RegisterParams(email: event.email, password: event.password, name: event.name, role: event.role),
     );
     await result.fold(
       (failure) async {
@@ -136,6 +136,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _emitPostAuthState(UserEntity user, Emitter<AuthState> emit) async {
+    if (!user.isVerified) {
+      emit(AuthPendingVerification(user));
+      return;
+    }
     final preferenceSet = await _storage.isBiometricPreferenceSet();
     if (!preferenceSet && await _biometric.isAvailable()) {
       emit(AuthBiometricSetupAvailable(user));

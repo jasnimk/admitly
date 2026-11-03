@@ -5,10 +5,16 @@ import 'package:admitly/features/auth/domain/repositories/auth_repository.dart';
 import 'package:dartz/dartz.dart';
 
 class RegisterParams {
-  const RegisterParams({required this.email, required this.password, required this.name});
+  const RegisterParams({
+    required this.email,
+    required this.password,
+    required this.name,
+    required this.role,
+  });
   final String email;
   final String password;
   final String name;
+  final UserRole role;
 }
 
 class RegisterUseCase extends UseCase<UserEntity, RegisterParams> {
@@ -17,5 +23,5 @@ class RegisterUseCase extends UseCase<UserEntity, RegisterParams> {
 
   @override
   Future<Either<Failure, UserEntity>> call(RegisterParams params) =>
-      _repository.register(params.email, params.password, params.name);
+      _repository.register(params.email, params.password, params.name, params.role);
 }

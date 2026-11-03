@@ -1,12 +1,13 @@
 import 'package:admitly/features/auth/domain/entities/user_entity.dart';
 import 'package:admitly/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:admitly/features/home/presentation/views/home_screen.dart';
 import 'package:admitly/features/auth/presentation/bloc/auth_event.dart';
 import 'package:admitly/features/auth/presentation/bloc/auth_state.dart';
 import 'package:admitly/features/auth/presentation/views/biometric_screen.dart';
 import 'package:admitly/features/auth/presentation/views/biometric_setup_screen.dart';
 import 'package:admitly/features/auth/presentation/views/login_screen.dart';
+import 'package:admitly/features/auth/presentation/views/pending_verification_screen.dart';
 import 'package:admitly/features/auth/presentation/views/register_screen.dart';
+import 'package:admitly/features/home/presentation/views/home_screen.dart';
 import 'package:admitly/features/splash/presentation/views/splash_screen.dart';
 import 'package:admitly/injection_container.dart';
 import 'package:flutter/material.dart';
@@ -51,6 +52,9 @@ class _AuthGate extends StatelessWidget {
           }
           if (state is AuthBiometricSetupAvailable) {
             return BiometricSetupScreen(user: state.user);
+          }
+          if (state is AuthPendingVerification) {
+            return PendingVerificationScreen(user: state.user);
           }
           if (state is AuthAuthenticated) {
             return _homeForRole(state.user);

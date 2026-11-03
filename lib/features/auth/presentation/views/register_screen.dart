@@ -4,9 +4,11 @@ import 'package:admitly/core/utils/validators.dart';
 import 'package:admitly/core/widgets/app_button.dart';
 import 'package:admitly/core/widgets/app_snack_bar.dart';
 import 'package:admitly/core/widgets/app_text_field.dart';
+import 'package:admitly/features/auth/domain/entities/user_entity.dart';
 import 'package:admitly/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:admitly/features/auth/presentation/bloc/auth_event.dart';
 import 'package:admitly/features/auth/presentation/bloc/auth_state.dart';
+import 'package:admitly/features/auth/presentation/widgets/role_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -27,6 +29,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  UserRole _selectedRole = UserRole.parent;
 
   @override
   void dispose() {
@@ -43,6 +46,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           email: _emailController.text,
           password: _passwordController.text,
           name: _nameController.text,
+          role: _selectedRole,
         ));
   }
 
@@ -56,7 +60,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         listener: (context, state) {
           if (state is AuthError) {
             AppSnackBar.show(context, state.message, type: SnackBarType.error);
-          } else if (state is AuthAuthenticated || state is AuthBiometricSetupAvailable) {
+          } else if (state is AuthAuthenticated ||
+              state is AuthBiometricSetupAvailable ||
+              state is AuthPendingVerification) {
             widget.onRegisterSuccess?.call();
           }
         },
@@ -81,9 +87,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         color: colors.text,
                       )),
                   SizedBox(height: 6.h),
-                  Text('Register as a parent to begin the admission process',
+                  Text('Choose your role to get started',
                       style: AppTextStyles.plusJakartaSans(fontSize: 14, color: colors.grey)),
-                  SizedBox(height: 36.h),
+                  SizedBox(height: 24.h),
+                  RoleSelector(
+                    selected: _selectedRole,
+                    onChanged: (role) => setState(() => _selectedRole = role),
+                  ),
+                  SizedBox(height: 24.h),
                   AppTextField(
                     label: 'Full Name',
                     hint: 'Enter your full name',

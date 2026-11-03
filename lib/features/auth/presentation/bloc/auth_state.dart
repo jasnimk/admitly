@@ -50,3 +50,11 @@ class AuthBiometricSetupAvailable extends AuthState {
   @override
   List<Object?> get props => [user];
 }
+
+class AuthPendingVerification extends AuthState {
+  const AuthPendingVerification(this.user);
+  final UserEntity user;
+
+  @override
+  List<Object?> get props => [user];
+}
