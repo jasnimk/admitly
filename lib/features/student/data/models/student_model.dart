@@ -16,6 +16,8 @@ class StudentModel extends StudentEntity {
     super.examSlotId,
     super.examScore,
     super.assignedCourse,
+    super.parentEmail,
+    super.parentPhone,
   });
 
   factory StudentModel.fromMap(String id, Map<String, dynamic> map) {
@@ -39,6 +41,8 @@ class StudentModel extends StudentEntity {
       examSlotId: map['examSlotId'] as String?,
       examScore: map['examScore'] as int?,
       assignedCourse: map['assignedCourse'] as String?,
+      parentEmail: map['parentEmail'] as String?,
+      parentPhone: map['parentPhone'] as String?,
     );
   }
 
@@ -55,5 +59,7 @@ class StudentModel extends StudentEntity {
         if (examSlotId != null) 'examSlotId': examSlotId,
         if (examScore != null) 'examScore': examScore,
         if (assignedCourse != null) 'assignedCourse': assignedCourse,
+        if (parentEmail != null) 'parentEmail': parentEmail,
+        if (parentPhone != null) 'parentPhone': parentPhone,
       };
 }

@@ -52,6 +52,8 @@ class DevSeeder {
         status: 'applicationCreated',
         parentId: 'seed_parent_1',
         createdAt: now.subtract(const Duration(days: 6)),
+        parentEmail: 'rajesh.mehta@example.com',
+        parentPhone: '+91 98201 11001',
       ),
       _student(
         id: 'seed_s2',
@@ -64,6 +66,8 @@ class DevSeeder {
         parentId: 'seed_parent_2',
         createdAt: now.subtract(const Duration(days: 5)),
         paymentStatus: 'paid',
+        parentEmail: 'deepa.sharma@example.com',
+        parentPhone: '+91 99302 22002',
       ),
       _student(
         id: 'seed_s3',
@@ -76,6 +80,8 @@ class DevSeeder {
         parentId: 'seed_parent_3',
         createdAt: now.subtract(const Duration(days: 4)),
         examSlotId: 'slot_seed_1',
+        parentEmail: 'suresh.nair@example.com',
+        parentPhone: '+91 97403 33003',
       ),
       _student(
         id: 'seed_s4',
@@ -89,6 +95,8 @@ class DevSeeder {
         createdAt: now.subtract(const Duration(days: 3)),
         examSlotId: 'slot_seed_1',
         examScore: 78,
+        parentEmail: 'kavita.patel@example.com',
+        parentPhone: '+91 96504 44004',
       ),
       _student(
         id: 'seed_s5',
@@ -103,6 +111,8 @@ class DevSeeder {
         examSlotId: 'slot_seed_2',
         examScore: 85,
         assignedCourse: 'Grade 4 — Science',
+        parentEmail: 'vijay.kumar@example.com',
+        parentPhone: '+91 95605 55005',
       ),
       _student(
         id: 'seed_s6',
@@ -114,6 +124,8 @@ class DevSeeder {
         status: 'feeSkipped',
         parentId: 'seed_parent_1',
         createdAt: now.subtract(const Duration(days: 1)),
+        parentEmail: 'rajesh.mehta@example.com',
+        parentPhone: '+91 98201 11001',
       ),
     ];
 
@@ -137,6 +149,8 @@ class DevSeeder {
     String? examSlotId,
     int? examScore,
     String? assignedCourse,
+    String? parentEmail,
+    String? parentPhone,
   }) =>
       {
         'id': id,
@@ -152,5 +166,7 @@ class DevSeeder {
         if (examSlotId != null) 'examSlotId': examSlotId,
         if (examScore != null) 'examScore': examScore,
         if (assignedCourse != null) 'assignedCourse': assignedCourse,
+        if (parentEmail != null) 'parentEmail': parentEmail,
+        if (parentPhone != null) 'parentPhone': parentPhone,
       };
 }

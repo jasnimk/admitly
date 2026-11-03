@@ -16,8 +16,10 @@ import 'package:admitly/features/exam_slot/data/repositories/exam_slot_repositor
 import 'package:admitly/features/exam_slot/domain/repositories/exam_slot_repository.dart';
 import 'package:admitly/features/exam_slot/domain/usecases/book_exam_slot_usecase.dart';
 import 'package:admitly/features/exam_slot/domain/usecases/create_exam_slot_usecase.dart';
+import 'package:admitly/features/exam_slot/domain/usecases/delete_exam_slot_usecase.dart';
 import 'package:admitly/features/exam_slot/domain/usecases/get_all_slots_usecase.dart';
 import 'package:admitly/features/exam_slot/domain/usecases/get_exam_slots_usecase.dart';
+import 'package:admitly/features/exam_slot/domain/usecases/update_exam_slot_usecase.dart';
 import 'package:admitly/features/exam_slot/presentation/bloc/exam_slot_bloc.dart';
 import 'package:admitly/features/student/data/datasources/student_remote_datasource.dart';
 import 'package:admitly/features/student/data/repositories/student_repository_impl.dart';
@@ -25,6 +27,10 @@ import 'package:admitly/features/student/domain/repositories/student_repository.
 import 'package:admitly/features/student/domain/usecases/create_student_usecase.dart';
 import 'package:admitly/features/student/domain/usecases/get_students_usecase.dart';
 import 'package:admitly/features/student/domain/usecases/update_student_usecase.dart';
+import 'package:admitly/features/payment/data/datasources/payment_remote_datasource.dart';
+import 'package:admitly/features/payment/data/repositories/payment_repository_impl.dart';
+import 'package:admitly/features/payment/domain/repositories/payment_repository.dart';
+import 'package:admitly/features/payment/domain/usecases/create_payment_usecase.dart';
 // ignore: depend_on_referenced_packages
 import 'package:admitly/firebase_options.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -72,11 +78,15 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => GetAllSlotsUseCase(sl()));
   sl.registerLazySingleton(() => BookExamSlotUseCase(sl()));
   sl.registerLazySingleton(() => CreateExamSlotUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateExamSlotUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteExamSlotUseCase(sl()));
   sl.registerFactory(() => ExamSlotBloc(
         getExamSlotsUseCase: sl(),
         getAllSlotsUseCase: sl(),
         bookExamSlotUseCase: sl(),
         createExamSlotUseCase: sl(),
+        updateExamSlotUseCase: sl(),
+        deleteExamSlotUseCase: sl(),
       ));
 
   // Student
@@ -96,6 +106,15 @@ Future<void> initDependencies() async {
         getAllStudentsUseCase: sl(),
         updateStudentUseCase: sl(),
       ));
+
+  // Payment
+  sl.registerLazySingleton<PaymentRemoteDatasource>(
+    () => PaymentRemoteDatasourceImpl(sl()),
+  );
+  sl.registerLazySingleton<PaymentRepository>(
+    () => PaymentRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => CreatePaymentUseCase(sl()));
 
   sl.registerFactory(() => AuthBloc(
         loginUseCase: sl(),

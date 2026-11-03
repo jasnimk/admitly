@@ -115,12 +115,12 @@ class _StatusChip extends StatelessWidget {
   Color _color(BuildContext context) {
     final colors = context.colors;
     return switch (status) {
-      ApplicationStatus.applicationCreated => colors.blue,
-      ApplicationStatus.feePaid           => colors.green,
-      ApplicationStatus.feeSkipped        => colors.orange,
-      ApplicationStatus.slotBooked        => colors.primary,
-      ApplicationStatus.examCompleted     => colors.orange,
-      ApplicationStatus.admissionCompleted => colors.green,
+      ApplicationStatus.applicationCreated => colors.subtle,
+      ApplicationStatus.feePaid           => colors.accent,
+      ApplicationStatus.feeSkipped        => colors.subtle,
+      ApplicationStatus.slotBooked        => colors.accent,
+      ApplicationStatus.examCompleted     => colors.accent,
+      ApplicationStatus.admissionCompleted => colors.primary,
     };
   }
 

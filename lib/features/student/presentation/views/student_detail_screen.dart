@@ -7,11 +7,14 @@ import 'package:admitly/features/student/presentation/bloc/student_bloc.dart';
 import 'package:admitly/features/student/presentation/bloc/student_event.dart';
 import 'package:admitly/features/student/presentation/bloc/student_state.dart';
 import 'package:admitly/features/student/presentation/widgets/create_student_sheet.dart';
+import 'package:admitly/features/student/presentation/widgets/assign_course_sheet.dart';
+import 'package:admitly/features/student/presentation/widgets/enter_score_sheet.dart';
 import 'package:admitly/features/student/presentation/widgets/registration_fee_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class StudentDetailScreen extends StatefulWidget {
   const StudentDetailScreen({
@@ -120,6 +123,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                   colors: colors),
             ],
             SizedBox(height: 24.h),
+            if (!isParent) _contactSection(colors),
             if (isParent) _parentActions(colors),
             if (!isParent) _adminActions(colors),
           ],
@@ -129,7 +133,11 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   }
 
   Future<void> _onEnterScore() async {
-    final score = await _showScoreDialog();
+    final score = await showEnterScoreSheet(
+      context,
+      studentName: _student.name,
+      existingScore: _student.examScore,
+    );
     if (score == null || !mounted) return;
     context.read<StudentBloc>().add(
           StudentUpdateRequested(
@@ -141,106 +149,17 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
         );
   }
 
-  Future<int?> _showScoreDialog() async {
-    final ctrl = TextEditingController();
-    return showDialog<int>(
-      context: context,
-      builder: (ctx) {
-        final colors = ctx.colors;
-        return AlertDialog(
-          backgroundColor: colors.surface,
-          title: Text('Enter Exam Score',
-              style: AppTextStyles.plusJakartaSans(
-                  fontSize: 17, fontWeight: FontWeight.w700, color: colors.text)),
-          content: TextField(
-            controller: ctrl,
-            keyboardType: TextInputType.number,
-            autofocus: true,
-            style: AppTextStyles.plusJakartaSans(fontSize: 14, color: colors.text),
-            decoration: InputDecoration(
-              hintText: 'Score out of 100',
-              hintStyle: AppTextStyles.plusJakartaSans(fontSize: 14, color: colors.grey),
-              suffixText: '/ 100',
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text('Cancel',
-                  style: AppTextStyles.plusJakartaSans(
-                      fontSize: 13, color: colors.grey)),
-            ),
-            TextButton(
-              onPressed: () {
-                final v = int.tryParse(ctrl.text.trim());
-                if (v != null && v >= 0 && v <= 100) {
-                  Navigator.pop(ctx, v);
-                }
-              },
-              child: Text('Save',
-                  style: AppTextStyles.plusJakartaSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: colors.primary)),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   Future<void> _onAssignCourse() async {
-    final course = await _showCourseDialog();
+    final course = await showAssignCourseSheet(
+      context,
+      existingCourse: _student.assignedCourse,
+    );
     if (course == null || !mounted) return;
     context.read<StudentBloc>().add(
           StudentUpdateRequested(
             _student.copyWith(assignedCourse: course),
           ),
         );
-  }
-
-  Future<String?> _showCourseDialog() async {
-    final ctrl = TextEditingController();
-    return showDialog<String>(
-      context: context,
-      builder: (ctx) {
-        final colors = ctx.colors;
-        return AlertDialog(
-          backgroundColor: colors.surface,
-          title: Text('Assign Course',
-              style: AppTextStyles.plusJakartaSans(
-                  fontSize: 17, fontWeight: FontWeight.w700, color: colors.text)),
-          content: TextField(
-            controller: ctrl,
-            autofocus: true,
-            style: AppTextStyles.plusJakartaSans(fontSize: 14, color: colors.text),
-            decoration: InputDecoration(
-              hintText: 'e.g. Grade 6 — Science',
-              hintStyle: AppTextStyles.plusJakartaSans(fontSize: 14, color: colors.grey),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text('Cancel',
-                  style: AppTextStyles.plusJakartaSans(
-                      fontSize: 13, color: colors.grey)),
-            ),
-            TextButton(
-              onPressed: () {
-                final v = ctrl.text.trim();
-                if (v.isNotEmpty) Navigator.pop(ctx, v);
-              },
-              child: Text('Assign',
-                  style: AppTextStyles.plusJakartaSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: colors.primary)),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   void _onCompleteAdmission() {
@@ -251,26 +170,79 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
         );
   }
 
+  Widget _contactSection(AppColors colors) {
+    final email = _student.parentEmail;
+    final phone = _student.parentPhone;
+    if (email == null && phone == null) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Contact Parent',
+          style: AppTextStyles.plusJakartaSans(
+              fontSize: 13, fontWeight: FontWeight.w600, color: colors.text),
+        ),
+        SizedBox(height: 10.h),
+        Row(
+          children: [
+            if (phone != null) ...[
+              Expanded(
+                child: _ContactButton(
+                  icon: Icons.call_outlined,
+                  label: 'Call',
+                  color: colors.primary,
+                  colors: colors,
+                  onTap: () async { try { await launchUrl(Uri(scheme: 'tel', path: phone), mode: LaunchMode.externalApplication); } catch (_) {} },
+                ),
+              ),
+              if (email != null) SizedBox(width: 12.w),
+            ],
+            if (email != null)
+              Expanded(
+                child: _ContactButton(
+                  icon: Icons.email_outlined,
+                  label: 'Email',
+                  color: colors.accent,
+                  colors: colors,
+                  onTap: () async { try { await launchUrl(Uri(scheme: 'mailto', path: email), mode: LaunchMode.externalApplication); } catch (_) {} },
+                ),
+              ),
+          ],
+        ),
+        SizedBox(height: 24.h),
+      ],
+    );
+  }
+
   Widget _adminActions(AppColors colors) {
     return switch (_student.status) {
       ApplicationStatus.slotBooked => _ActionButton(
           label: 'Enter Exam Score',
           icon: Icons.quiz_outlined,
-          color: colors.orange,
+          color: colors.accent,
           onTap: _onEnterScore,
         ),
       ApplicationStatus.examCompleted when _student.assignedCourse == null =>
-        _ActionButton(
-          label: 'Assign Course',
-          icon: Icons.book_outlined,
-          color: colors.blue,
-          onTap: _onAssignCourse,
+        _AdminActionWithEditScore(
+          primary: _ActionButton(
+            label: 'Assign Course',
+            icon: Icons.book_outlined,
+            color: colors.accent,
+            onTap: _onAssignCourse,
+          ),
+          onEditScore: _onEnterScore,
+          colors: colors,
         ),
-      ApplicationStatus.examCompleted => _ActionButton(
-          label: 'Complete Admission',
-          icon: Icons.check_circle_outline_rounded,
-          color: colors.green,
-          onTap: _onCompleteAdmission,
+      ApplicationStatus.examCompleted => _AdminActionWithEditScore(
+          primary: _ActionButton(
+            label: 'Complete Admission',
+            icon: Icons.check_circle_outline_rounded,
+            color: colors.primary,
+            onTap: _onCompleteAdmission,
+          ),
+          onEditScore: _onEnterScore,
+          colors: colors,
         ),
       _ => const SizedBox.shrink(),
     };
@@ -289,7 +261,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
         _ActionButton(
           label: 'Book Exam Slot',
           icon: Icons.calendar_month_outlined,
-          color: colors.blue,
+          color: colors.accent,
           onTap: _onBookSlot,
         ),
       _ => const SizedBox.shrink(),
@@ -492,8 +464,16 @@ class _DetailsCard extends StatelessWidget {
             'Applied On',
             DateFormat('dd MMM yyyy').format(student.createdAt),
             colors,
-            isLast: true,
+            isLast: student.paymentStatus == null,
           ),
+          if (student.paymentStatus != null)
+            _detailRow(
+              'Fee Status',
+              student.paymentStatus![0].toUpperCase() +
+                  student.paymentStatus!.substring(1),
+              colors,
+              isLast: true,
+            ),
         ],
       ),
     );
@@ -536,13 +516,13 @@ class _SlotInfoCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: colors.blue.withValues(alpha: 0.06),
+        color: colors.accent.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: colors.blue.withValues(alpha: 0.2)),
+        border: Border.all(color: colors.accent.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
-          Icon(Icons.event_available_outlined, color: colors.blue, size: 20.w),
+          Icon(Icons.event_available_outlined, color: colors.accent, size: 20.w),
           SizedBox(width: 10.w),
           Expanded(
             child: Column(
@@ -552,11 +532,11 @@ class _SlotInfoCard extends StatelessWidget {
                     style: AppTextStyles.plusJakartaSans(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: colors.blue,
+                      color: colors.accent,
                     )),
                 Text('Slot ID: $slotId',
                     style: AppTextStyles.plusJakartaSans(
-                        fontSize: 11, color: colors.blue),
+                        fontSize: 11, color: colors.accent),
                     overflow: TextOverflow.ellipsis),
               ],
             ),
@@ -577,7 +557,7 @@ class _ExamResultCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final passed = score >= 40;
-    final color = passed ? colors.green : colors.red;
+    final color = passed ? colors.primary : colors.red;
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -610,6 +590,43 @@ class _ExamResultCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _AdminActionWithEditScore extends StatelessWidget {
+  const _AdminActionWithEditScore({
+    required this.primary,
+    required this.onEditScore,
+    required this.colors,
+  });
+  final Widget primary;
+  final VoidCallback onEditScore;
+  final AppColors colors;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        primary,
+        SizedBox(height: 8.h),
+        GestureDetector(
+          onTap: onEditScore,
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 8.h),
+            child: Text(
+              'Edit Exam Score',
+              style: AppTextStyles.plusJakartaSans(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: colors.grey,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -674,12 +691,12 @@ class _StatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final color = switch (status) {
-      ApplicationStatus.applicationCreated => colors.blue,
-      ApplicationStatus.feePaid => colors.green,
-      ApplicationStatus.feeSkipped => colors.orange,
-      ApplicationStatus.slotBooked => colors.primary,
-      ApplicationStatus.examCompleted => colors.orange,
-      ApplicationStatus.admissionCompleted => colors.green,
+      ApplicationStatus.applicationCreated => colors.subtle,
+      ApplicationStatus.feePaid => colors.accent,
+      ApplicationStatus.feeSkipped => colors.subtle,
+      ApplicationStatus.slotBooked => colors.accent,
+      ApplicationStatus.examCompleted => colors.accent,
+      ApplicationStatus.admissionCompleted => colors.primary,
     };
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
@@ -693,6 +710,50 @@ class _StatusBadge extends StatelessWidget {
           fontSize: 11,
           fontWeight: FontWeight.w600,
           color: color,
+        ),
+      ),
+    );
+  }
+}
+
+class _ContactButton extends StatelessWidget {
+  const _ContactButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.colors,
+    required this.onTap,
+  });
+  final IconData icon;
+  final String label;
+  final Color color;
+  final AppColors colors;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 13.h),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.07),
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(color: color.withValues(alpha: 0.25)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 17.w, color: color),
+            SizedBox(width: 7.w),
+            Text(
+              label,
+              style: AppTextStyles.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: color),
+            ),
+          ],
         ),
       ),
     );

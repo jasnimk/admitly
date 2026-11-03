@@ -1,6 +1,7 @@
 import 'package:admitly/core/constants/app_text_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   AppTheme._();
@@ -26,9 +27,9 @@ class AppTheme {
         ),
         iconTheme: const IconThemeData(color: Color(0xFF15171F)),
       ),
-      textTheme: TextTheme(
-        bodyMedium: AppTextStyles.plusJakartaSans(fontSize: 14, color: const Color(0xFF15171F)),
-      ),
+      textTheme: GoogleFonts.plusJakartaSansTextTheme(
+        ThemeData.light().textTheme,
+      ).apply(bodyColor: const Color(0xFF15171F), displayColor: const Color(0xFF15171F)),
     );
   }
 
@@ -53,9 +54,9 @@ class AppTheme {
         ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      textTheme: TextTheme(
-        bodyMedium: AppTextStyles.plusJakartaSans(fontSize: 14, color: Colors.white),
-      ),
+      textTheme: GoogleFonts.plusJakartaSansTextTheme(
+        ThemeData.dark().textTheme,
+      ).apply(bodyColor: Colors.white, displayColor: Colors.white),
     );
   }
 }

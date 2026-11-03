@@ -41,6 +41,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     context.read<StudentBloc>().add(const StudentAllLoadRequested());
   }
 
+  String get _greeting {
+    final h = DateTime.now().hour;
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
@@ -49,74 +56,50 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       builder: (context, state) {
         final students =
             state is StudentLoaded ? state.students : <StudentEntity>[];
-
-        final total = students.length;
-        final pending = students
-            .where((s) => s.status == ApplicationStatus.applicationCreated)
-            .length;
-        final feePaid =
-            students.where((s) => s.status == ApplicationStatus.feePaid).length;
-        final slotBooked = students
-            .where((s) => s.status == ApplicationStatus.slotBooked)
-            .length;
-        final examDone = students
-            .where((s) => s.status == ApplicationStatus.examCompleted)
-            .length;
-        final admitted = students
-            .where((s) => s.status == ApplicationStatus.admissionCompleted)
-            .length;
-
-        final recent = [...students]
-          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-        final recentShown = recent.take(5).toList();
+        final stats = _DashboardStats.from(students);
+        final recent = ([...students]
+              ..sort((a, b) => b.createdAt.compareTo(a.createdAt)))
+            .take(5)
+            .toList();
 
         return RefreshIndicator(
-          onRefresh: () async => context
-              .read<StudentBloc>()
-              .add(const StudentAllLoadRequested()),
+          onRefresh: () async =>
+              context.read<StudentBloc>().add(const StudentAllLoadRequested()),
           child: ListView(
-            padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 100.h),
+            padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 100.h),
             children: [
-              _Header(colors: colors),
+              _HeroBanner(
+                greeting: _greeting,
+                name: widget.user.name.split(' ').first,
+                total: stats.total,
+                colors: colors,
+              ),
               SizedBox(height: 20.h),
               if (state is StudentLoading)
                 Center(
-                    child: Padding(
-                  padding: EdgeInsets.all(32.h),
-                  child: CircularProgressIndicator(color: colors.primary),
-                ))
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 40.h),
+                    child: CircularProgressIndicator(color: colors.primary),
+                  ),
+                )
               else ...[
-                _StatsGrid(
-                  colors: colors,
-                  stats: [
-                    _Stat('Total', total, colors.primary),
-                    _Stat('Pending', pending, colors.orange),
-                    _Stat('Fee Paid', feePaid, colors.green),
-                    _Stat('Slot Booked', slotBooked, colors.blue),
-                    _Stat('Exam Done', examDone, colors.orange),
-                    _Stat('Admitted', admitted, colors.green),
-                  ],
-                ),
+                _StatsGrid(stats: stats, colors: colors),
+                SizedBox(height: 12.h),
+                _AdmittedCard(
+                    admitted: stats.admitted, total: stats.total, colors: colors),
+                if (stats.feeSkipped > 0) ...[
+                  SizedBox(height: 8.h),
+                  _InfoBanner(
+                    icon: Icons.info_outline_rounded,
+                    message:
+                        '${stats.feeSkipped} student${stats.feeSkipped > 1 ? 's' : ''} skipped fee payment',
+                    color: colors.grey,
+                    colors: colors,
+                  ),
+                ],
                 SizedBox(height: 24.h),
-                Text(
-                  'Recent Applications',
-                  style: AppTextStyles.plusJakartaSans(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: colors.text,
-                  ),
-                ),
-                SizedBox(height: 10.h),
-                if (recentShown.isEmpty)
-                  _EmptyState(colors: colors)
-                else
-                  ...recentShown.map(
-                    (s) => Padding(
-                      padding: EdgeInsets.only(bottom: 10.h),
-                      child: StudentCard(
-                          student: s, onTap: () => _openDetail(s)),
-                    ),
-                  ),
+                _RecentSection(
+                    students: recent, onTap: _openDetail, colors: colors),
               ],
             ],
           ),
@@ -126,120 +109,463 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 }
 
-class _Header extends StatelessWidget {
-  const _Header({required this.colors});
+// ── Dashboard stats ──────────────────────────────────────────────────────────
+
+class _DashboardStats {
+  const _DashboardStats({
+    required this.total,
+    required this.pending,
+    required this.feePaid,
+    required this.slotBooked,
+    required this.examDone,
+    required this.admitted,
+    required this.feeSkipped,
+  });
+
+  factory _DashboardStats.from(List<StudentEntity> students) => _DashboardStats(
+        total: students.length,
+        pending: students
+            .where((s) => s.status == ApplicationStatus.applicationCreated)
+            .length,
+        feePaid: students
+            .where((s) => s.status == ApplicationStatus.feePaid)
+            .length,
+        slotBooked: students
+            .where((s) => s.status == ApplicationStatus.slotBooked)
+            .length,
+        examDone: students
+            .where((s) => s.status == ApplicationStatus.examCompleted)
+            .length,
+        admitted: students
+            .where((s) => s.status == ApplicationStatus.admissionCompleted)
+            .length,
+        feeSkipped: students
+            .where((s) => s.status == ApplicationStatus.feeSkipped)
+            .length,
+      );
+
+  final int total;
+  final int pending;
+  final int feePaid;
+  final int slotBooked;
+  final int examDone;
+  final int admitted;
+  final int feeSkipped;
+}
+
+// ── Stats grid ───────────────────────────────────────────────────────────────
+
+class _StatsGrid extends StatelessWidget {
+  const _StatsGrid({required this.stats, required this.colors});
+  final _DashboardStats stats;
   final AppColors colors;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        Row(
           children: [
-            Text(
-              'Dashboard',
-              style: AppTextStyles.plusJakartaSans(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: colors.text,
+            Expanded(
+              child: _StatCard(
+                icon: Icons.hourglass_empty_rounded,
+                label: 'Pending',
+                value: stats.pending,
+                color: colors.subtle,
+                colors: colors,
               ),
             ),
-            SizedBox(height: 2.h),
-            Text(
-              DateFormat('EEEE, dd MMMM').format(DateTime.now()),
-              style: AppTextStyles.plusJakartaSans(
-                  fontSize: 13, color: colors.grey),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: _StatCard(
+                icon: Icons.receipt_long_outlined,
+                label: 'Fee Paid',
+                value: stats.feePaid,
+                color: colors.accent,
+                colors: colors,
+              ),
             ),
           ],
         ),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-          decoration: BoxDecoration(
-            color: colors.primary.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(20.r),
-          ),
-          child: Text(
-            'Admin',
-            style: AppTextStyles.plusJakartaSans(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: colors.primary,
+        SizedBox(height: 12.h),
+        Row(
+          children: [
+            Expanded(
+              child: _StatCard(
+                icon: Icons.event_available_outlined,
+                label: 'Slot Booked',
+                value: stats.slotBooked,
+                color: colors.primary,
+                colors: colors,
+              ),
             ),
-          ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: _StatCard(
+                icon: Icons.assignment_turned_in_outlined,
+                label: 'Exam Done',
+                value: stats.examDone,
+                color: colors.subtle,
+                colors: colors,
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
 }
 
-class _Stat {
-  const _Stat(this.label, this.value, this.color);
-  final String label;
-  final int value;
-  final Color color;
-}
+// ── Recent section ───────────────────────────────────────────────────────────
 
-class _StatsGrid extends StatelessWidget {
-  const _StatsGrid({required this.colors, required this.stats});
+class _RecentSection extends StatelessWidget {
+  const _RecentSection({
+    required this.students,
+    required this.onTap,
+    required this.colors,
+  });
+  final List<StudentEntity> students;
+  final void Function(StudentEntity) onTap;
   final AppColors colors;
-  final List<_Stat> stats;
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 3,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 10.w,
-      mainAxisSpacing: 10.h,
-      childAspectRatio: 1.2,
-      children: stats.map((s) => _StatCard(stat: s, colors: colors)).toList(),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'Recent Applications',
+              style: AppTextStyles.plusJakartaSans(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: colors.text,
+              ),
+            ),
+            const Spacer(),
+            if (students.isNotEmpty)
+              Text(
+                'Latest ${students.length}',
+                style:
+                    AppTextStyles.plusJakartaSans(fontSize: 12, color: colors.grey),
+              ),
+          ],
+        ),
+        SizedBox(height: 10.h),
+        if (students.isEmpty)
+          _EmptyState(colors: colors)
+        else
+          ...students.map(
+            (s) => Padding(
+              padding: EdgeInsets.only(bottom: 10.h),
+              child: StudentCard(student: s, onTap: () => onTap(s)),
+            ),
+          ),
+      ],
     );
   }
 }
 
-class _StatCard extends StatelessWidget {
-  const _StatCard({required this.stat, required this.colors});
-  final _Stat stat;
+// ── Hero banner ──────────────────────────────────────────────────────────────
+
+class _HeroBanner extends StatelessWidget {
+  const _HeroBanner({
+    required this.greeting,
+    required this.name,
+    required this.total,
+    required this.colors,
+  });
+  final String greeting;
+  final String name;
+  final int total;
   final AppColors colors;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(12.w),
+      width: double.infinity,
+      padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
-        color: stat.color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: stat.color.withValues(alpha: 0.15)),
+        color: colors.primary,
+        borderRadius: BorderRadius.circular(18.r),
       ),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            '${stat.value}',
-            style: AppTextStyles.plusJakartaSans(
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
-              color: stat.color,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$greeting, $name',
+                  style: AppTextStyles.plusJakartaSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  DateFormat('EEEE, dd MMMM yyyy').format(DateTime.now()),
+                  style: AppTextStyles.plusJakartaSans(
+                    fontSize: 12,
+                    color: Colors.white.withValues(alpha: 0.6),
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                Row(
+                  children: [
+                    _HeroChip(
+                      label: '$total total',
+                      icon: Icons.people_outline_rounded,
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          SizedBox(height: 2.h),
-          Text(
-            stat.label,
-            style: AppTextStyles.plusJakartaSans(
-                fontSize: 10, color: colors.grey),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          SizedBox(width: 12.w),
+          Container(
+            padding: EdgeInsets.all(14.w),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(14.r),
+            ),
+            child: Icon(
+              Icons.school_rounded,
+              size: 28.w,
+              color: Colors.white.withValues(alpha: 0.9),
+            ),
           ),
         ],
       ),
     );
   }
 }
+
+class _HeroChip extends StatelessWidget {
+  const _HeroChip({required this.label, required this.icon});
+  final String label;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(20.r),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13.w, color: Colors.white),
+          SizedBox(width: 5.w),
+          Text(
+            label,
+            style: AppTextStyles.plusJakartaSans(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Stat card ────────────────────────────────────────────────────────────────
+
+class _StatCard extends StatelessWidget {
+  const _StatCard({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+    required this.colors,
+  });
+  final IconData icon;
+  final String label;
+  final int value;
+  final Color color;
+  final AppColors colors;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(14.r),
+        border: Border.all(color: colors.border),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(10.w),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10.r),
+            ),
+            child: Icon(icon, size: 18.w, color: color),
+          ),
+          SizedBox(width: 12.w),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '$value',
+                style: AppTextStyles.plusJakartaSans(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: colors.text,
+                ),
+              ),
+              Text(
+                label,
+                style: AppTextStyles.plusJakartaSans(
+                  fontSize: 11,
+                  color: colors.grey,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Admitted highlight ───────────────────────────────────────────────────────
+
+class _AdmittedCard extends StatelessWidget {
+  const _AdmittedCard({
+    required this.admitted,
+    required this.total,
+    required this.colors,
+  });
+  final int admitted;
+  final int total;
+  final AppColors colors;
+
+  @override
+  Widget build(BuildContext context) {
+    final pct = total > 0 ? admitted / total : 0.0;
+
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: colors.primary.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(14.r),
+        border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(10.w),
+            decoration: BoxDecoration(
+              color: colors.primary.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(10.r),
+            ),
+            child: Icon(Icons.school_rounded,
+                size: 18.w, color: colors.primary),
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      '$admitted',
+                      style: AppTextStyles.plusJakartaSans(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: colors.text,
+                      ),
+                    ),
+                    SizedBox(width: 6.w),
+                    Text(
+                      'Admitted',
+                      style: AppTextStyles.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: colors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 6.h),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4.r),
+                  child: LinearProgressIndicator(
+                    value: pct,
+                    minHeight: 4.h,
+                    backgroundColor: colors.border,
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(colors.primary),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: 12.w),
+          Text(
+            '${(pct * 100).round()}%',
+            style: AppTextStyles.plusJakartaSans(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: colors.primary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Info banner ──────────────────────────────────────────────────────────────
+
+class _InfoBanner extends StatelessWidget {
+  const _InfoBanner({
+    required this.icon,
+    required this.message,
+    required this.color,
+    required this.colors,
+  });
+  final IconData icon;
+  final String message;
+  final Color color;
+  final AppColors colors;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(color: color.withValues(alpha: 0.15)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 15.w, color: color),
+          SizedBox(width: 8.w),
+          Text(
+            message,
+            style: AppTextStyles.plusJakartaSans(
+                fontSize: 12, color: color),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Empty state ──────────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState({required this.colors});
@@ -248,7 +574,7 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(24.w),
+      padding: EdgeInsets.all(28.w),
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(14.r),
@@ -256,7 +582,8 @@ class _EmptyState extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(Icons.folder_open_outlined, size: 40.w, color: colors.grey),
+          Icon(Icons.folder_open_outlined,
+              size: 40.w, color: colors.grey),
           SizedBox(height: 10.h),
           Text(
             'No applications yet',

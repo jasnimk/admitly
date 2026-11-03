@@ -96,6 +96,7 @@ class _MainShellState extends State<MainShell> {
         onPressed: () => showCreateStudentSheet(
           ctx,
           parentId: widget.user.uid,
+          parentEmail: widget.user.email,
         ),
         backgroundColor: ctx.colors.primary,
         label: Text(

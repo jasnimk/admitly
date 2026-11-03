@@ -10,4 +10,6 @@ abstract class ExamSlotRepository {
     required String studentId,
   });
   Future<Either<Failure, void>> createSlot(ExamSlotEntity slot);
+  Future<Either<Failure, void>> updateSlot(ExamSlotEntity slot);
+  Future<Either<Failure, void>> deleteSlot(String slotId);
 }

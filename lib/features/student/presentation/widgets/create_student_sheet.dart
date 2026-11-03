@@ -14,6 +14,7 @@ import 'package:intl/intl.dart';
 Future<void> showCreateStudentSheet(
   BuildContext context, {
   required String parentId,
+  String? parentEmail,
   StudentEntity? existing,
 }) {
   return showModalBottomSheet(
@@ -22,14 +23,23 @@ Future<void> showCreateStudentSheet(
     backgroundColor: Colors.transparent,
     builder: (_) => BlocProvider.value(
       value: context.read<StudentBloc>(),
-      child: _CreateStudentSheet(parentId: parentId, existing: existing),
+      child: _CreateStudentSheet(
+        parentId: parentId,
+        parentEmail: parentEmail,
+        existing: existing,
+      ),
     ),
   );
 }
 
 class _CreateStudentSheet extends StatefulWidget {
-  const _CreateStudentSheet({required this.parentId, this.existing});
+  const _CreateStudentSheet({
+    required this.parentId,
+    this.parentEmail,
+    this.existing,
+  });
   final String parentId;
+  final String? parentEmail;
   final StudentEntity? existing;
 
   @override
@@ -40,6 +50,7 @@ class _CreateStudentSheetState extends State<_CreateStudentSheet> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _schoolCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
 
   DateTime? _dob;
   Gender _gender = Gender.male;
@@ -59,6 +70,7 @@ class _CreateStudentSheetState extends State<_CreateStudentSheet> {
       final s = widget.existing!;
       _nameCtrl.text = s.name;
       _schoolCtrl.text = s.previousSchool;
+      _phoneCtrl.text = s.parentPhone ?? '';
       _dob = s.dateOfBirth;
       _gender = s.gender;
       _grade = s.applyingGrade;
@@ -69,6 +81,7 @@ class _CreateStudentSheetState extends State<_CreateStudentSheet> {
   void dispose() {
     _nameCtrl.dispose();
     _schoolCtrl.dispose();
+    _phoneCtrl.dispose();
     super.dispose();
   }
 
@@ -107,6 +120,10 @@ class _CreateStudentSheetState extends State<_CreateStudentSheet> {
       examSlotId: widget.existing?.examSlotId,
       examScore: widget.existing?.examScore,
       assignedCourse: widget.existing?.assignedCourse,
+      parentEmail: widget.existing?.parentEmail ?? widget.parentEmail,
+      parentPhone: _phoneCtrl.text.trim().isEmpty
+          ? widget.existing?.parentPhone
+          : _phoneCtrl.text.trim(),
     );
 
     if (_isEditing) {
@@ -277,6 +294,16 @@ class _CreateStudentSheetState extends State<_CreateStudentSheet> {
                         colors: colors,
                       ),
                       SizedBox(height: 20.h),
+                      _label(colors, 'Parent Phone (optional)'),
+                      SizedBox(height: 8.h),
+                      _field(
+                        controller: _phoneCtrl,
+                        hint: '+91 98765 43210',
+                        validator: (_) => null,
+                        keyboardType: TextInputType.phone,
+                        colors: colors,
+                      ),
+                      SizedBox(height: 20.h),
                       _label(colors, 'Applying Grade'),
                       SizedBox(height: 8.h),
                       Container(
@@ -343,10 +370,12 @@ class _CreateStudentSheetState extends State<_CreateStudentSheet> {
     required String hint,
     required String? Function(String?) validator,
     required AppColors colors,
+    TextInputType? keyboardType,
   }) =>
       TextFormField(
         controller: controller,
         validator: validator,
+        keyboardType: keyboardType,
         style: AppTextStyles.plusJakartaSans(fontSize: 14, color: colors.text),
         decoration: InputDecoration(
           hintText: hint,

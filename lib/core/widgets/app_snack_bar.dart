@@ -17,10 +17,10 @@ class AppSnackBar {
     final colors = context.colors;
 
     final (bg, icon) = switch (type) {
-      SnackBarType.success => (colors.green, Icons.check_circle_outline_rounded),
+      SnackBarType.success => (colors.primary, Icons.check_circle_outline_rounded),
       SnackBarType.error   => (colors.red, Icons.error_outline_rounded),
-      SnackBarType.warning => (colors.orange, Icons.warning_amber_rounded),
-      SnackBarType.info    => (colors.blue, Icons.info_outline_rounded),
+      SnackBarType.warning => (colors.subtle, Icons.warning_amber_rounded),
+      SnackBarType.info    => (colors.accent, Icons.info_outline_rounded),
     };
 
     ScaffoldMessenger.of(context)
