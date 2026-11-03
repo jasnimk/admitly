@@ -6,7 +6,6 @@ import 'package:admitly/features/student/presentation/bloc/student_bloc.dart';
 import 'package:admitly/features/student/presentation/bloc/student_event.dart';
 import 'package:admitly/features/student/presentation/bloc/student_state.dart';
 import 'package:admitly/features/student/presentation/views/student_detail_screen.dart';
-import 'package:admitly/features/student/presentation/widgets/create_student_sheet.dart';
 import 'package:admitly/features/student/presentation/widgets/student_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,12 +23,6 @@ class _StudentListScreenState extends State<StudentListScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<StudentBloc>().add(StudentLoadRequested(widget.user.uid));
-  }
-
-  Future<void> _openCreateSheet() async {
-    await showCreateStudentSheet(context, parentId: widget.user.uid);
-    if (!mounted) return;
     context.read<StudentBloc>().add(StudentLoadRequested(widget.user.uid));
   }
 
@@ -51,34 +44,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return Scaffold(
-      backgroundColor: colors.background,
-      appBar: AppBar(
-        backgroundColor: colors.background,
-        elevation: 0,
-        title: Text(
-          'My Students',
-          style: AppTextStyles.plusJakartaSans(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: colors.text,
-          ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _openCreateSheet,
-        backgroundColor: colors.primary,
-        label: Text(
-          'Add Student',
-          style: AppTextStyles.plusJakartaSans(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-        icon: const Icon(Icons.add, color: Colors.white),
-      ),
-      body: BlocBuilder<StudentBloc, StudentState>(
+    return BlocBuilder<StudentBloc, StudentState>(
         builder: (context, state) {
           if (state is StudentLoading) {
             return const Center(child: CircularProgressIndicator());
@@ -127,7 +93,6 @@ class _StudentListScreenState extends State<StudentListScreen> {
           }
           return const SizedBox.shrink();
         },
-      ),
-    );
+      );
   }
 }

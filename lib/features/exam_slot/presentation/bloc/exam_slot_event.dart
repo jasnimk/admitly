@@ -1,3 +1,4 @@
+import 'package:admitly/features/exam_slot/domain/entities/exam_slot_entity.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class ExamSlotEvent extends Equatable {
@@ -10,10 +11,21 @@ class ExamSlotsLoadRequested extends ExamSlotEvent {
   const ExamSlotsLoadRequested();
 }
 
+class ExamAllSlotsLoadRequested extends ExamSlotEvent {
+  const ExamAllSlotsLoadRequested();
+}
+
 class ExamSlotBookRequested extends ExamSlotEvent {
   const ExamSlotBookRequested({required this.slotId, required this.studentId});
   final String slotId;
   final String studentId;
   @override
   List<Object?> get props => [slotId, studentId];
+}
+
+class ExamSlotCreateRequested extends ExamSlotEvent {
+  const ExamSlotCreateRequested(this.slot);
+  final ExamSlotEntity slot;
+  @override
+  List<Object?> get props => [slot];
 }

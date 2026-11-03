@@ -4,8 +4,10 @@ import 'package:dartz/dartz.dart';
 
 abstract class ExamSlotRepository {
   Future<Either<Failure, List<ExamSlotEntity>>> getAvailableSlots();
+  Future<Either<Failure, List<ExamSlotEntity>>> getAllSlots();
   Future<Either<Failure, void>> bookSlot({
     required String slotId,
     required String studentId,
   });
+  Future<Either<Failure, void>> createSlot(ExamSlotEntity slot);
 }

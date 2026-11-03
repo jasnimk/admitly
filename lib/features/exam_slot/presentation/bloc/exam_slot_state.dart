@@ -26,6 +26,10 @@ class ExamSlotBookSuccess extends ExamSlotState {
   const ExamSlotBookSuccess();
 }
 
+class ExamSlotCreateSuccess extends ExamSlotState {
+  const ExamSlotCreateSuccess();
+}
+
 class ExamSlotError extends ExamSlotState {
   const ExamSlotError(this.message);
   final String message;

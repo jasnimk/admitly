@@ -10,10 +10,13 @@ import 'package:admitly/features/auth/domain/usecases/login_usecase.dart';
 import 'package:admitly/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:admitly/features/auth/domain/usecases/register_usecase.dart';
 import 'package:admitly/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:admitly/features/student/presentation/bloc/student_bloc.dart';
 import 'package:admitly/features/exam_slot/data/datasources/exam_slot_remote_datasource.dart';
 import 'package:admitly/features/exam_slot/data/repositories/exam_slot_repository_impl.dart';
 import 'package:admitly/features/exam_slot/domain/repositories/exam_slot_repository.dart';
 import 'package:admitly/features/exam_slot/domain/usecases/book_exam_slot_usecase.dart';
+import 'package:admitly/features/exam_slot/domain/usecases/create_exam_slot_usecase.dart';
+import 'package:admitly/features/exam_slot/domain/usecases/get_all_slots_usecase.dart';
 import 'package:admitly/features/exam_slot/domain/usecases/get_exam_slots_usecase.dart';
 import 'package:admitly/features/exam_slot/presentation/bloc/exam_slot_bloc.dart';
 import 'package:admitly/features/student/data/datasources/student_remote_datasource.dart';
@@ -66,10 +69,14 @@ Future<void> initDependencies() async {
     () => ExamSlotRepositoryImpl(sl()),
   );
   sl.registerLazySingleton(() => GetExamSlotsUseCase(sl()));
+  sl.registerLazySingleton(() => GetAllSlotsUseCase(sl()));
   sl.registerLazySingleton(() => BookExamSlotUseCase(sl()));
+  sl.registerLazySingleton(() => CreateExamSlotUseCase(sl()));
   sl.registerFactory(() => ExamSlotBloc(
         getExamSlotsUseCase: sl(),
+        getAllSlotsUseCase: sl(),
         bookExamSlotUseCase: sl(),
+        createExamSlotUseCase: sl(),
       ));
 
   // Student
@@ -83,6 +90,12 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => GetStudentsByParentUseCase(sl()));
   sl.registerLazySingleton(() => GetAllStudentsUseCase(sl()));
   sl.registerLazySingleton(() => UpdateStudentUseCase(sl()));
+  sl.registerFactory(() => StudentBloc(
+        createStudentUseCase: sl(),
+        getStudentsByParentUseCase: sl(),
+        getAllStudentsUseCase: sl(),
+        updateStudentUseCase: sl(),
+      ));
 
   sl.registerFactory(() => AuthBloc(
         loginUseCase: sl(),

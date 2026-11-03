@@ -4,7 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 abstract class ExamSlotRemoteDataSource {
   Future<List<ExamSlotModel>> getAvailableSlots();
+  Future<List<ExamSlotModel>> getAllSlots();
   Future<void> bookSlot({required String slotId, required String studentId});
+  Future<void> createSlot(Map<String, dynamic> data);
 }
 
 class ExamSlotRemoteDataSourceImpl implements ExamSlotRemoteDataSource {
@@ -12,15 +14,15 @@ class ExamSlotRemoteDataSourceImpl implements ExamSlotRemoteDataSource {
   final FirebaseFirestore _firestore;
 
   @override
+  Future<List<ExamSlotModel>> getAllSlots() async {
+    final snap = await _firestore.collection('examSlots').orderBy('date').get();
+    return snap.docs.map((d) => ExamSlotModel.fromMap(d.id, d.data())).toList();
+  }
+
+  @override
   Future<List<ExamSlotModel>> getAvailableSlots() async {
-    final snap = await _firestore
-        .collection('examSlots')
-        .orderBy('date')
-        .get();
-    return snap.docs
-        .map((d) => ExamSlotModel.fromMap(d.id, d.data()))
-        .where((s) => s.isAvailable)
-        .toList();
+    final all = await getAllSlots();
+    return all.where((s) => s.isAvailable).toList();
   }
 
   @override
@@ -44,5 +46,10 @@ class ExamSlotRemoteDataSourceImpl implements ExamSlotRemoteDataSource {
         'status': ApplicationStatus.slotBooked.name,
       });
     });
+  }
+
+  @override
+  Future<void> createSlot(Map<String, dynamic> data) async {
+    await _firestore.collection('examSlots').add(data);
   }
 }
