@@ -1,4 +1,7 @@
+import 'package:admitly/core/services/biometric_service.dart';
+import 'package:admitly/core/services/secure_storage_service.dart';
 import 'package:admitly/features/auth/data/datasources/auth_remote_datasource.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:admitly/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:admitly/features/auth/domain/repositories/auth_repository.dart';
 import 'package:admitly/features/auth/domain/usecases/get_current_user_usecase.dart';
@@ -7,6 +10,12 @@ import 'package:admitly/features/auth/domain/usecases/login_usecase.dart';
 import 'package:admitly/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:admitly/features/auth/domain/usecases/register_usecase.dart';
 import 'package:admitly/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:admitly/features/student/data/datasources/student_remote_datasource.dart';
+import 'package:admitly/features/student/data/repositories/student_repository_impl.dart';
+import 'package:admitly/features/student/domain/repositories/student_repository.dart';
+import 'package:admitly/features/student/domain/usecases/create_student_usecase.dart';
+import 'package:admitly/features/student/domain/usecases/get_students_usecase.dart';
+import 'package:admitly/features/student/domain/usecases/update_student_usecase.dart';
 // ignore: depend_on_referenced_packages
 import 'package:admitly/firebase_options.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -19,6 +28,11 @@ final sl = GetIt.instance;
 
 Future<void> initDependencies() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Core services
+  sl.registerLazySingleton(() => const FlutterSecureStorage());
+  sl.registerLazySingleton(() => SecureStorageService(sl()));
+  sl.registerLazySingleton(() => BiometricService());
 
   // Firebase
   sl.registerLazySingleton(() => FirebaseAuth.instance);
@@ -38,11 +52,26 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => LogoutUseCase(sl()));
   sl.registerLazySingleton(() => GetCurrentUserUseCase(sl()));
 
+  // Student
+  sl.registerLazySingleton<StudentRemoteDataSource>(
+    () => StudentRemoteDataSourceImpl(sl()),
+  );
+  sl.registerLazySingleton<StudentRepository>(
+    () => StudentRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => CreateStudentUseCase(sl()));
+  sl.registerLazySingleton(() => GetStudentsByParentUseCase(sl()));
+  sl.registerLazySingleton(() => GetAllStudentsUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateStudentUseCase(sl()));
+
   sl.registerFactory(() => AuthBloc(
         loginUseCase: sl(),
         registerUseCase: sl(),
         googleSignInUseCase: sl(),
         logoutUseCase: sl(),
         getCurrentUserUseCase: sl(),
+        biometricService: sl(),
+        secureStorageService: sl(),
+        authRepository: sl(),
       ));
 }

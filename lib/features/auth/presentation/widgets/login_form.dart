@@ -28,8 +28,7 @@ class LoginForm extends StatelessWidget {
       child: Column(
         children: [
           AppTextField(
-            label: 'Email',
-            hint: 'Enter your email',
+            hint: 'Email',
             controller: emailController,
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
@@ -37,8 +36,7 @@ class LoginForm extends StatelessWidget {
           ),
           SizedBox(height: 10.h),
           AppTextField(
-            label: 'Password',
-            hint: 'Enter your password',
+            hint: 'Password',
             controller: passwordController,
             obscureText: true,
             textInputAction: TextInputAction.done,

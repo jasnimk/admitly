@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:admitly/core/constants/app_constants.dart';
 import 'package:admitly/core/errors/exceptions.dart';
 import 'package:admitly/core/utils/app_logger.dart';
 import 'package:admitly/features/auth/data/models/user_model.dart';
@@ -5,13 +8,15 @@ import 'package:admitly/features/auth/domain/entities/user_entity.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
 
 abstract class AuthRemoteDataSource {
   Future<UserModel> login(String email, String password);
-  Future<UserModel> register(String email, String password, String name);
+  Future<UserModel> register(String email, String password, String name, UserRole role);
   Future<UserModel> signInWithGoogle();
   Future<void> logout();
   Future<UserModel?> getCurrentUser();
+  Future<UserModel> refreshUser(String uid);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -36,26 +41,51 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<UserModel> register(String email, String password, String name) async {
+  Future<UserModel> register(String email, String password, String name, UserRole role) async {
     try {
       final credential = await _auth.createUserWithEmailAndPassword(
         email: email.trim(),
         password: password,
       );
       final user = credential.user!;
+      final isVerified = role == UserRole.parent;
       final model = UserModel(
         uid: user.uid,
         email: email.trim(),
         name: name.trim(),
-        role: UserRole.parent,
+        role: role,
+        isVerified: isVerified,
       );
       await _firestore.collection('users').doc(user.uid).set(model.toMap());
-      appLogger.i('User registered: ${user.uid}');
+      appLogger.i('User registered: ${user.uid}, role: $role');
+      if (!isVerified) {
+        _notifyN8nRegistration(userId: user.uid, email: email.trim(), name: name.trim());
+      }
       return model;
     } on FirebaseAuthException catch (e) {
       appLogger.e('Register failed', error: e);
       throw AuthException(_authErrorMessage(e.code));
     }
+  }
+
+  void _notifyN8nRegistration({
+    required String userId,
+    required String email,
+    required String name,
+  }) {
+    http
+        .post(
+          Uri.parse(AppConstants.n8nRegistrationWebhookUrl),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'userId': userId,
+            'email': email,
+            'name': name,
+            'adminEmail': AppConstants.adminEmail,
+          }),
+        )
+        .then((_) => appLogger.i('[ADMITLY] n8n notification sent for $userId'))
+        .catchError((e) => appLogger.w('[ADMITLY] n8n notification failed: $e'));
   }
 
   @override
@@ -108,6 +138,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     if (user == null) return null;
     return await _fetchUserFromFirestore(user.uid);
   }
+
+  @override
+  Future<UserModel> refreshUser(String uid) => _fetchUserFromFirestore(uid);
 
   Future<UserModel> _fetchUserFromFirestore(String uid) async {
     final doc = await _firestore.collection('users').doc(uid).get();
