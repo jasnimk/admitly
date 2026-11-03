@@ -56,74 +56,87 @@ class _LoginScreenState extends State<LoginScreen> {
           }
         },
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: 24.w),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: 60.h),
-                  Text('Welcome back',
-                      style: AppTextStyles.plusJakartaSans(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w700,
-                        color: colors.text,
-                      )),
-                  SizedBox(height: 6.h),
-                  Text('Sign in to continue',
-                      style: AppTextStyles.plusJakartaSans(
-                        fontSize: 14,
-                        color: colors.grey,
-                      )),
-                  SizedBox(height: 40.h),
-                  AppTextField(
-                    label: 'Email',
-                    hint: 'Enter your email',
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    validator: Validators.email,
-                  ),
-                  SizedBox(height: 16.h),
-                  AppTextField(
-                    label: 'Password',
-                    hint: 'Enter your password',
-                    controller: _passwordController,
-                    obscureText: true,
-                    textInputAction: TextInputAction.done,
-                    validator: Validators.password,
-                    onFieldSubmitted: (_) => _submit(),
-                  ),
-                  SizedBox(height: 32.h),
-                  BlocBuilder<AuthBloc, AuthState>(
-                    builder: (context, state) => AppButton(
-                      label: 'Sign In',
-                      onPressed: _submit,
-                      isLoading: state is AuthLoading,
+          child: Center(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(height: 16.h),
+                    // Logo
+                    Image.asset(
+                      colors.isDark
+                          ? 'assets/logo/logo_dark.png'
+                          : 'assets/logo/logo_light.png',
+                      width: 72.w,
+                      height: 72.w,
+                      fit: BoxFit.contain,
                     ),
-                  ),
-                  SizedBox(height: 16.h),
-                  _GoogleSignInButton(),
-                  SizedBox(height: 32.h),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text("Don't have an account? ",
-                          style: AppTextStyles.plusJakartaSans(fontSize: 13, color: colors.grey)),
-                      GestureDetector(
-                        onTap: widget.onRegisterTap,
-                        child: Text('Register',
-                            style: AppTextStyles.plusJakartaSans(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: colors.text,
-                            )),
+                    SizedBox(height: 16.h),
+                    Text('Welcome back',
+                        style: AppTextStyles.plusJakartaSans(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          color: colors.text,
+                        )),
+                    SizedBox(height: 4.h),
+                    Text('Sign in to continue',
+                        style: AppTextStyles.plusJakartaSans(
+                          fontSize: 13,
+                          color: colors.grey,
+                        )),
+                    SizedBox(height: 24.h),
+                    AppTextField(
+                      label: 'Email',
+                      hint: 'Enter your email',
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      validator: Validators.email,
+                    ),
+                    SizedBox(height: 10.h),
+                    AppTextField(
+                      label: 'Password',
+                      hint: 'Enter your password',
+                      controller: _passwordController,
+                      obscureText: true,
+                      textInputAction: TextInputAction.done,
+                      validator: Validators.password,
+                      onFieldSubmitted: (_) => _submit(),
+                    ),
+                    SizedBox(height: 20.h),
+                    BlocBuilder<AuthBloc, AuthState>(
+                      builder: (context, state) => AppButton(
+                        label: 'Sign In',
+                        onPressed: _submit,
+                        isLoading: state is AuthLoading,
                       ),
-                    ],
-                  ),
-                  SizedBox(height: 24.h),
-                ],
+                    ),
+                    SizedBox(height: 10.h),
+                    _GoogleSignInButton(),
+                    SizedBox(height: 20.h),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text("Don't have an account? ",
+                            style: AppTextStyles.plusJakartaSans(
+                                fontSize: 13, color: colors.grey)),
+                        GestureDetector(
+                          onTap: widget.onRegisterTap,
+                          child: Text('Register',
+                              style: AppTextStyles.plusJakartaSans(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: colors.text,
+                              )),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 16.h),
+                  ],
+                ),
               ),
             ),
           ),
@@ -147,9 +160,10 @@ class _GoogleSignInButton extends StatelessWidget {
             : () => context.read<AuthBloc>().add(const AuthGoogleSignInRequested()),
         icon: Image.network(
           'https://www.google.com/favicon.ico',
-          width: 18.w,
-          height: 18.w,
-          errorBuilder: (_, __, ___) => Icon(Icons.g_mobiledata, color: colors.text, size: 20.w),
+          width: 16.w,
+          height: 16.w,
+          errorBuilder: (_, __, ___) =>
+              Icon(Icons.g_mobiledata, color: colors.text, size: 20.w),
         ),
       ),
     );
