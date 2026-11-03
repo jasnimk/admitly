@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Background rounded square -->
+  <rect width="200" height="200" rx="44" fill="#15171F"/>
+
+  <!-- Document shape -->
+  <rect x="62" y="44" width="76" height="92" rx="8" fill="white" opacity="0.12"/>
+  <rect x="62" y="44" width="76" height="92" rx="8" fill="none" stroke="white" stroke-width="2.5" opacity="0.3"/>
+
+  <!-- Lines on document -->
+  <rect x="76" y="72" width="48" height="5" rx="2.5" fill="white" opacity="0.5"/>
+  <rect x="76" y="85" width="36" height="5" rx="2.5" fill="white" opacity="0.5"/>
+  <rect x="76" y="98" width="42" height="5" rx="2.5" fill="white" opacity="0.5"/>
+
+  <!-- Checkmark circle -->
+  <circle cx="138" cy="128" r="22" fill="#15171F"/>
+  <circle cx="138" cy="128" r="18" fill="#10B981"/>
+  <!-- Checkmark -->
+  <polyline points="129,128 135,135 148,121" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

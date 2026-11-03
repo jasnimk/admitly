@@ -4,6 +4,7 @@ import 'package:admitly/features/auth/presentation/bloc/auth_event.dart';
 import 'package:admitly/features/auth/presentation/bloc/auth_state.dart';
 import 'package:admitly/features/auth/presentation/views/login_screen.dart';
 import 'package:admitly/features/auth/presentation/views/register_screen.dart';
+import 'package:admitly/features/splash/presentation/views/splash_screen.dart';
 import 'package:admitly/injection_container.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,6 +13,11 @@ class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case '/':
+        return MaterialPageRoute(builder: (_) => BlocProvider(
+              create: (_) => sl<AuthBloc>(),
+              child: const SplashScreen(),
+            ));
+      case '/home':
         return MaterialPageRoute(builder: (_) => const _AuthGate());
       case '/login':
         return MaterialPageRoute(builder: (_) => const _LoginWrapper());
