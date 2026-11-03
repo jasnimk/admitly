@@ -6,7 +6,6 @@ import 'package:admitly/features/auth/presentation/bloc/auth_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -49,7 +48,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         }
       },
       child: Scaffold(
-        backgroundColor: colors.primary,
+        backgroundColor: colors.white,
         body: Center(
           child: FadeTransition(
             opacity: _fadeAnim,
@@ -58,14 +57,21 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _logo(),
+                  Image.asset(
+                    colors.isDark
+                        ? 'assets/logo/logo_light.png'
+                        : 'assets/logo/logo_dark.png',
+                    width: 100.w,
+                    height: 100.w,
+                    fit: BoxFit.contain,
+                  ),
                   SizedBox(height: 20.h),
                   Text(
                     'admitly',
                     style: AppTextStyles.plusJakartaSans(
-                      fontSize: 32,
+                      fontSize: 30,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: colors.text,
                       letterSpacing: -0.5,
                     ),
                   ),
@@ -74,7 +80,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     'School Admission Management',
                     style: AppTextStyles.plusJakartaSans(
                       fontSize: 13,
-                      color: Colors.white.withValues(alpha: 0.55),
+                      color: colors.grey,
                       letterSpacing: 0.2,
                     ),
                   ),
@@ -83,23 +89,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _logo() {
-    return Container(
-      width: 96.w,
-      height: 96.w,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(24.r),
-      ),
-      padding: EdgeInsets.all(16.w),
-      child: SvgPicture.asset(
-        'assets/logo/logo.svg',
-        colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-        placeholderBuilder: (_) => Icon(Icons.school_rounded, color: Colors.white, size: 48.w),
       ),
     );
   }
