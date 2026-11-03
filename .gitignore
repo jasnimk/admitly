@@ -48,3 +48,4 @@ app.*.map.json
 *.pdf
 *.md
 !ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md
+lib/firebase_options.dart

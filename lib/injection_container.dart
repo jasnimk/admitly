@@ -7,14 +7,19 @@ import 'package:admitly/features/auth/domain/usecases/login_usecase.dart';
 import 'package:admitly/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:admitly/features/auth/domain/usecases/register_usecase.dart';
 import 'package:admitly/features/auth/presentation/bloc/auth_bloc.dart';
+// ignore: depend_on_referenced_packages
+import 'package:admitly/firebase_options.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 final sl = GetIt.instance;
 
 Future<void> initDependencies() async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   // Firebase
   sl.registerLazySingleton(() => FirebaseAuth.instance);
   sl.registerLazySingleton(() => FirebaseFirestore.instance);

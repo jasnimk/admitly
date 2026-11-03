@@ -5,9 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // TODO: Uncomment after running `flutterfire configure`
-  // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await initDependencies();
+  await initDependencies(); // Firebase.initializeApp is called inside
   runApp(const AppRoot());
 }
 
