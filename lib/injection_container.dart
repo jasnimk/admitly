@@ -1,4 +1,7 @@
+import 'package:admitly/core/services/biometric_service.dart';
+import 'package:admitly/core/services/secure_storage_service.dart';
 import 'package:admitly/features/auth/data/datasources/auth_remote_datasource.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:admitly/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:admitly/features/auth/domain/repositories/auth_repository.dart';
 import 'package:admitly/features/auth/domain/usecases/get_current_user_usecase.dart';
@@ -19,6 +22,11 @@ final sl = GetIt.instance;
 
 Future<void> initDependencies() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Core services
+  sl.registerLazySingleton(() => const FlutterSecureStorage());
+  sl.registerLazySingleton(() => SecureStorageService(sl()));
+  sl.registerLazySingleton(() => BiometricService());
 
   // Firebase
   sl.registerLazySingleton(() => FirebaseAuth.instance);
@@ -44,5 +52,7 @@ Future<void> initDependencies() async {
         googleSignInUseCase: sl(),
         logoutUseCase: sl(),
         getCurrentUserUseCase: sl(),
+        biometricService: sl(),
+        secureStorageService: sl(),
       ));
 }

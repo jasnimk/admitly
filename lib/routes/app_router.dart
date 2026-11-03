@@ -2,6 +2,8 @@ import 'package:admitly/features/auth/domain/entities/user_entity.dart';
 import 'package:admitly/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:admitly/features/auth/presentation/bloc/auth_event.dart';
 import 'package:admitly/features/auth/presentation/bloc/auth_state.dart';
+import 'package:admitly/features/auth/presentation/views/biometric_screen.dart';
+import 'package:admitly/features/auth/presentation/views/biometric_setup_screen.dart';
 import 'package:admitly/features/auth/presentation/views/login_screen.dart';
 import 'package:admitly/features/auth/presentation/views/register_screen.dart';
 import 'package:admitly/features/splash/presentation/views/splash_screen.dart';
@@ -42,6 +44,12 @@ class _AuthGate extends StatelessWidget {
         builder: (context, state) {
           if (state is AuthLoading || state is AuthInitial) {
             return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          }
+          if (state is AuthBiometricRequired) {
+            return BiometricScreen(user: state.user);
+          }
+          if (state is AuthBiometricSetupAvailable) {
+            return BiometricSetupScreen(user: state.user);
           }
           if (state is AuthAuthenticated) {
             return _homeForRole(state.user);

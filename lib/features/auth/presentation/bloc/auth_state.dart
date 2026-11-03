@@ -34,3 +34,19 @@ class AuthError extends AuthState {
   @override
   List<Object?> get props => [message];
 }
+
+class AuthBiometricRequired extends AuthState {
+  const AuthBiometricRequired(this.user);
+  final UserEntity user;
+
+  @override
+  List<Object?> get props => [user];
+}
+
+class AuthBiometricSetupAvailable extends AuthState {
+  const AuthBiometricSetupAvailable(this.user);
+  final UserEntity user;
+
+  @override
+  List<Object?> get props => [user];
+}

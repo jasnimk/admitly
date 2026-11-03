@@ -1,3 +1,4 @@
+import 'package:admitly/features/auth/domain/entities/user_entity.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class AuthEvent extends Equatable {
@@ -35,4 +36,21 @@ class AuthGoogleSignInRequested extends AuthEvent {
 
 class AuthLogoutRequested extends AuthEvent {
   const AuthLogoutRequested();
+}
+
+class AuthBiometricLoginRequested extends AuthEvent {
+  const AuthBiometricLoginRequested(this.user);
+  final UserEntity user;
+
+  @override
+  List<Object?> get props => [user];
+}
+
+class AuthBiometricSetupRequested extends AuthEvent {
+  const AuthBiometricSetupRequested({required this.user, required this.enable});
+  final UserEntity user;
+  final bool enable;
+
+  @override
+  List<Object?> get props => [user, enable];
 }
