@@ -193,7 +193,7 @@ class _Empty extends StatelessWidget {
           Icon(Icons.folder_open_outlined, size: 48.w, color: colors.grey),
           SizedBox(height: 12.h),
           Text(
-            'No applications found',
+            'No students found',
             style: AppTextStyles.plusJakartaSans(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,

@@ -67,10 +67,10 @@ class _MainShellState extends State<MainShell> {
           page: AdminDashboardScreen(user: widget.user),
         ),
         _ShellTab(
-          title: 'Applications',
-          label: 'Applications',
-          icon: Icons.folder_outlined,
-          activeIcon: Icons.folder_rounded,
+          title: 'Students',
+          label: 'Students',
+          icon: Icons.people_outline_rounded,
+          activeIcon: Icons.people_rounded,
           page: AdminApplicationsScreen(user: widget.user),
         ),
         const _ShellTab(
