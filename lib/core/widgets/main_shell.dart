@@ -90,7 +90,7 @@ class _MainShellState extends State<MainShell> {
       ];
 
   Widget? _buildFab() {
-    if (_isParent && _currentIndex == 0) {
+    if (_isParent && (_currentIndex == 0 || _currentIndex == 1)) {
       return FloatingActionButton.extended(
         heroTag: 'fab_add_student',
         onPressed: () => showCreateStudentSheet(
@@ -110,11 +110,19 @@ class _MainShellState extends State<MainShell> {
       );
     }
     if (!_isParent && _currentIndex == 2) {
-      return FloatingActionButton(
+      return FloatingActionButton.extended(
         heroTag: 'fab_create_slot',
         onPressed: () => showCreateSlotSheet(context),
         backgroundColor: context.colors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: Text(
+          'Create Slot',
+          style: AppTextStyles.plusJakartaSans(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
       );
     }
     return null;
