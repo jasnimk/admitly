@@ -19,6 +19,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   late Animation<double> _fadeAnim;
   late Animation<double> _scaleAnim;
 
+  bool _authDone = false;
+  bool _minDelayDone = false;
+
   @override
   void initState() {
     super.initState();
@@ -29,6 +32,25 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     );
     _controller.forward();
     context.read<AuthBloc>().add(const AuthCheckRequested());
+
+    Future.delayed(const Duration(milliseconds: 2000), () {
+      if (!mounted) return;
+      _minDelayDone = true;
+      _tryNavigate();
+    });
+  }
+
+  void _onAuthState(AuthState state) {
+    if (state is AuthAuthenticated || state is AuthUnauthenticated) {
+      _authDone = true;
+      _tryNavigate();
+    }
+  }
+
+  void _tryNavigate() {
+    if (!_authDone || !_minDelayDone) return;
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(context, '/home');
   }
 
   @override
@@ -42,11 +64,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     final colors = context.colors;
 
     return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is AuthAuthenticated || state is AuthUnauthenticated) {
-          Navigator.pushReplacementNamed(context, '/home');
-        }
-      },
+      listener: (context, state) => _onAuthState(state),
       child: Scaffold(
         backgroundColor: colors.white,
         body: Center(
@@ -59,31 +77,27 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 children: [
                   Image.asset(
                     colors.isDark
-                        ? 'assets/logo/logo_dark.png'
-                        : 'assets/logo/logo_light.png',
+                        ? 'assets/logo/logo_light.png'
+                        : 'assets/logo/logo_dark.png',
                     width: 100.w,
                     height: 100.w,
                     fit: BoxFit.contain,
                   ),
                   SizedBox(height: 20.h),
-                  Text(
-                    'admitly',
-                    style: AppTextStyles.plusJakartaSans(
-                      fontSize: 30,
-                      fontWeight: FontWeight.w700,
-                      color: colors.text,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
+                  Text('admitly',
+                      style: AppTextStyles.plusJakartaSans(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w700,
+                        color: colors.text,
+                        letterSpacing: -0.5,
+                      )),
                   SizedBox(height: 6.h),
-                  Text(
-                    'School Admission Management',
-                    style: AppTextStyles.plusJakartaSans(
-                      fontSize: 13,
-                      color: colors.grey,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
+                  Text('School Admission Management',
+                      style: AppTextStyles.plusJakartaSans(
+                        fontSize: 13,
+                        color: colors.grey,
+                        letterSpacing: 0.2,
+                      )),
                 ],
               ),
             ),

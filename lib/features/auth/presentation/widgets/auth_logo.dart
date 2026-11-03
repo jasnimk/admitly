@@ -12,8 +12,8 @@ class AuthLogo extends StatelessWidget {
     final s = size ?? 72.w;
     return Image.asset(
       context.colors.isDark
-          ? 'assets/logo/logo_dark.png'
-          : 'assets/logo/logo_light.png',
+          ? 'assets/logo/logo_light.png'
+          : 'assets/logo/logo_dark.png',
       width: s,
       height: s,
       fit: BoxFit.contain,

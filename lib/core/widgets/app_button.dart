@@ -75,7 +75,7 @@ class AppButton extends StatelessWidget {
         AppButtonVariant.outlined => OutlinedButton(
             onPressed: isLoading ? null : onPressed,
             style: OutlinedButton.styleFrom(
-              side: BorderSide(color: colors.primary),
+              side: BorderSide(color: colors.border),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
             ),
             child: child,
@@ -90,8 +90,8 @@ class AppButton extends StatelessWidget {
 
   Color _labelColor(AppColors colors) => switch (variant) {
         AppButtonVariant.primary => colors.white,
-        AppButtonVariant.secondary => colors.primary,
-        AppButtonVariant.outlined => colors.primary,
-        AppButtonVariant.text => colors.primary,
+        AppButtonVariant.secondary => colors.black,
+        AppButtonVariant.outlined => colors.black,
+        AppButtonVariant.text => colors.black,
       };
 }
