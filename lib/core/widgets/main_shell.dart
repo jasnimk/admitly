@@ -89,15 +89,15 @@ class _MainShellState extends State<MainShell> {
         ),
       ];
 
-  Widget? _buildFab() {
+  Widget? _buildFab(BuildContext ctx) {
     if (_isParent && (_currentIndex == 0 || _currentIndex == 1)) {
       return FloatingActionButton.extended(
         heroTag: 'fab_add_student',
         onPressed: () => showCreateStudentSheet(
-          context,
+          ctx,
           parentId: widget.user.uid,
         ),
-        backgroundColor: context.colors.primary,
+        backgroundColor: ctx.colors.primary,
         label: Text(
           'Add Student',
           style: AppTextStyles.plusJakartaSans(
@@ -112,8 +112,8 @@ class _MainShellState extends State<MainShell> {
     if (!_isParent && _currentIndex == 2) {
       return FloatingActionButton.extended(
         heroTag: 'fab_create_slot',
-        onPressed: () => showCreateSlotSheet(context),
-        backgroundColor: context.colors.primary,
+        onPressed: () => showCreateSlotSheet(ctx),
+        backgroundColor: ctx.colors.primary,
         icon: const Icon(Icons.add, color: Colors.white),
         label: Text(
           'Create Slot',
@@ -163,7 +163,7 @@ class _MainShellState extends State<MainShell> {
               index: _currentIndex,
               children: tabs.map((t) => t.page).toList(),
             ),
-            floatingActionButton: _buildFab(),
+            floatingActionButton: _buildFab(context),
             bottomNavigationBar: NavigationBar(
               selectedIndex: _currentIndex,
               onDestinationSelected: (i) => setState(() => _currentIndex = i),
