@@ -10,6 +10,12 @@ import 'package:admitly/features/auth/domain/usecases/login_usecase.dart';
 import 'package:admitly/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:admitly/features/auth/domain/usecases/register_usecase.dart';
 import 'package:admitly/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:admitly/features/student/data/datasources/student_remote_datasource.dart';
+import 'package:admitly/features/student/data/repositories/student_repository_impl.dart';
+import 'package:admitly/features/student/domain/repositories/student_repository.dart';
+import 'package:admitly/features/student/domain/usecases/create_student_usecase.dart';
+import 'package:admitly/features/student/domain/usecases/get_students_usecase.dart';
+import 'package:admitly/features/student/domain/usecases/update_student_usecase.dart';
 // ignore: depend_on_referenced_packages
 import 'package:admitly/firebase_options.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -45,6 +51,18 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => GoogleSignInUseCase(sl()));
   sl.registerLazySingleton(() => LogoutUseCase(sl()));
   sl.registerLazySingleton(() => GetCurrentUserUseCase(sl()));
+
+  // Student
+  sl.registerLazySingleton<StudentRemoteDataSource>(
+    () => StudentRemoteDataSourceImpl(sl()),
+  );
+  sl.registerLazySingleton<StudentRepository>(
+    () => StudentRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => CreateStudentUseCase(sl()));
+  sl.registerLazySingleton(() => GetStudentsByParentUseCase(sl()));
+  sl.registerLazySingleton(() => GetAllStudentsUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateStudentUseCase(sl()));
 
   sl.registerFactory(() => AuthBloc(
         loginUseCase: sl(),

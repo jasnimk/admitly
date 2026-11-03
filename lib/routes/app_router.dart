@@ -7,7 +7,8 @@ import 'package:admitly/features/auth/presentation/views/biometric_setup_screen.
 import 'package:admitly/features/auth/presentation/views/login_screen.dart';
 import 'package:admitly/features/auth/presentation/views/pending_verification_screen.dart';
 import 'package:admitly/features/auth/presentation/views/register_screen.dart';
-import 'package:admitly/features/home/presentation/views/home_screen.dart';
+import 'package:admitly/core/widgets/app_loading_screen.dart';
+import 'package:admitly/core/widgets/main_shell.dart';
 import 'package:admitly/features/splash/presentation/views/splash_screen.dart';
 import 'package:admitly/injection_container.dart';
 import 'package:flutter/material.dart';
@@ -45,7 +46,7 @@ class _AuthGate extends StatelessWidget {
       child: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
           if (state is AuthLoading || state is AuthInitial) {
-            return const Scaffold(body: Center(child: CircularProgressIndicator()));
+            return const AppLoadingScreen();
           }
           if (state is AuthBiometricRequired) {
             return BiometricScreen(user: state.user);
@@ -65,7 +66,7 @@ class _AuthGate extends StatelessWidget {
     );
   }
 
-  Widget _homeForRole(UserEntity user) => HomeScreen(user: user);
+  Widget _homeForRole(UserEntity user) => MainShell(user: user);
 }
 
 class _LoginWrapper extends StatelessWidget {

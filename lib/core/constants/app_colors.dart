@@ -32,6 +32,7 @@ class AppColors {
   Color get border => mist;
   Color get background => isDark ? const Color(0xFF121212) : const Color(0xFFF0F2F4);
   Color get backgroundLight => canvas;
+  Color get surface => isDark ? const Color(0xFF1E1E1E) : Colors.white;
 
   Color get shimmerBase => grey.withValues(alpha: 0.3);
   Color get shimmerHighlight => grey.withValues(alpha: 0.1);
