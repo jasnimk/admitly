@@ -1,9 +1,11 @@
 import 'package:admitly/core/constants/app_colors.dart';
 import 'package:admitly/core/constants/app_text_styles.dart';
 import 'package:admitly/features/auth/domain/entities/user_entity.dart';
+import 'package:admitly/features/student/domain/entities/student_entity.dart';
 import 'package:admitly/features/student/presentation/bloc/student_bloc.dart';
 import 'package:admitly/features/student/presentation/bloc/student_event.dart';
 import 'package:admitly/features/student/presentation/bloc/student_state.dart';
+import 'package:admitly/features/student/presentation/views/student_detail_screen.dart';
 import 'package:admitly/features/student/presentation/widgets/create_student_sheet.dart';
 import 'package:admitly/features/student/presentation/widgets/student_card.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +29,20 @@ class _StudentListScreenState extends State<StudentListScreen> {
 
   Future<void> _openCreateSheet() async {
     await showCreateStudentSheet(context, parentId: widget.user.uid);
+    if (!mounted) return;
+    context.read<StudentBloc>().add(StudentLoadRequested(widget.user.uid));
+  }
+
+  Future<void> _openDetail(StudentEntity student) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BlocProvider.value(
+          value: context.read<StudentBloc>(),
+          child: StudentDetailScreen(student: student, viewer: widget.user),
+        ),
+      ),
+    );
     if (!mounted) return;
     context.read<StudentBloc>().add(StudentLoadRequested(widget.user.uid));
   }
@@ -103,7 +119,10 @@ class _StudentListScreenState extends State<StudentListScreen> {
               padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 100.h),
               itemCount: state.students.length,
               separatorBuilder: (_, __) => SizedBox(height: 12.h),
-              itemBuilder: (context, i) => StudentCard(student: state.students[i]),
+              itemBuilder: (context, i) => StudentCard(
+                student: state.students[i],
+                onTap: () => _openDetail(state.students[i]),
+              ),
             );
           }
           return const SizedBox.shrink();

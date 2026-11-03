@@ -10,6 +10,12 @@ import 'package:admitly/features/auth/domain/usecases/login_usecase.dart';
 import 'package:admitly/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:admitly/features/auth/domain/usecases/register_usecase.dart';
 import 'package:admitly/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:admitly/features/exam_slot/data/datasources/exam_slot_remote_datasource.dart';
+import 'package:admitly/features/exam_slot/data/repositories/exam_slot_repository_impl.dart';
+import 'package:admitly/features/exam_slot/domain/repositories/exam_slot_repository.dart';
+import 'package:admitly/features/exam_slot/domain/usecases/book_exam_slot_usecase.dart';
+import 'package:admitly/features/exam_slot/domain/usecases/get_exam_slots_usecase.dart';
+import 'package:admitly/features/exam_slot/presentation/bloc/exam_slot_bloc.dart';
 import 'package:admitly/features/student/data/datasources/student_remote_datasource.dart';
 import 'package:admitly/features/student/data/repositories/student_repository_impl.dart';
 import 'package:admitly/features/student/domain/repositories/student_repository.dart';
@@ -51,6 +57,20 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => GoogleSignInUseCase(sl()));
   sl.registerLazySingleton(() => LogoutUseCase(sl()));
   sl.registerLazySingleton(() => GetCurrentUserUseCase(sl()));
+
+  // Exam Slot
+  sl.registerLazySingleton<ExamSlotRemoteDataSource>(
+    () => ExamSlotRemoteDataSourceImpl(sl()),
+  );
+  sl.registerLazySingleton<ExamSlotRepository>(
+    () => ExamSlotRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => GetExamSlotsUseCase(sl()));
+  sl.registerLazySingleton(() => BookExamSlotUseCase(sl()));
+  sl.registerFactory(() => ExamSlotBloc(
+        getExamSlotsUseCase: sl(),
+        bookExamSlotUseCase: sl(),
+      ));
 
   // Student
   sl.registerLazySingleton<StudentRemoteDataSource>(
