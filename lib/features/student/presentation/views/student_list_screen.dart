@@ -1,4 +1,5 @@
 import 'package:admitly/core/constants/app_colors.dart';
+import 'package:admitly/core/widgets/app_loader.dart';
 import 'package:admitly/core/constants/app_text_styles.dart';
 import 'package:admitly/features/auth/domain/entities/user_entity.dart';
 import 'package:admitly/features/student/domain/entities/student_entity.dart';
@@ -52,7 +53,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
         },
         builder: (context, state) {
           if (state is StudentLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const AppLoader();
           }
           if (state is StudentError) {
             return Center(

@@ -1,4 +1,5 @@
 import 'package:admitly/core/constants/app_colors.dart';
+import 'package:admitly/core/widgets/app_loader.dart';
 import 'package:admitly/core/constants/app_text_styles.dart';
 import 'package:admitly/core/widgets/app_section_header.dart';
 import 'package:admitly/features/auth/domain/entities/user_entity.dart';
@@ -103,11 +104,9 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
               ),
               SizedBox(height: 10.h),
               if (state is StudentLoading)
-                Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(24.h),
-                    child: CircularProgressIndicator(color: colors.primary),
-                  ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: AppLoader(),
                 )
               else if (recentShown.isEmpty)
                 _EmptyStudents(colors: colors)

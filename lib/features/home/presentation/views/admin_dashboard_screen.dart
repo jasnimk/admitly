@@ -1,4 +1,5 @@
 import 'package:admitly/core/constants/app_colors.dart';
+import 'package:admitly/core/widgets/app_loader.dart';
 import 'package:admitly/features/auth/domain/entities/user_entity.dart';
 import 'package:admitly/features/home/presentation/widgets/dashboard_admitted_card.dart';
 import 'package:admitly/features/home/presentation/widgets/dashboard_hero_banner.dart';
@@ -82,11 +83,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               ),
               SizedBox(height: 20.h),
               if (state is StudentLoading)
-                Center(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 40.h),
-                    child: CircularProgressIndicator(color: colors.primary),
-                  ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 40),
+                  child: AppLoader(),
                 )
               else ...[
                 DashboardStatsGrid(

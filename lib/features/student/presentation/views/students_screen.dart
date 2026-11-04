@@ -1,4 +1,5 @@
 import 'package:admitly/core/constants/app_colors.dart';
+import 'package:admitly/core/widgets/app_loader.dart';
 import 'package:admitly/core/constants/app_text_styles.dart';
 import 'package:admitly/features/auth/domain/entities/user_entity.dart';
 import 'package:admitly/features/student/domain/entities/student_entity.dart';
@@ -90,8 +91,7 @@ class _StudentsScreenState extends State<StudentsScreen>
             Divider(height: 1, color: colors.border),
             Expanded(
               child: state is StudentLoading
-                  ? Center(
-                      child: CircularProgressIndicator(color: colors.primary))
+                  ? const AppLoader()
                   : filtered.isEmpty
                       ? _Empty(colors: colors)
                       : RefreshIndicator(

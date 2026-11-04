@@ -3,21 +3,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AppLoader extends StatelessWidget {
-  const AppLoader({super.key, this.size, this.color});
-
-  final double? size;
-  final Color? color;
+  const AppLoader({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Center(
-      child: SizedBox(
-        width: size ?? 28.w,
-        height: size ?? 28.w,
-        child: CircularProgressIndicator(
-          strokeWidth: 2.5,
-          color: color ?? context.colors.primary,
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Image.asset(
+            colors.isDark ? 'assets/logo/logo_dark.png' : 'assets/logo/logo_light.png',
+            width: 52.w,
+            height: 52.w,
+            fit: BoxFit.contain,
+          ),
+          SizedBox(height: 20.h),
+          SizedBox(
+            width: 20.w,
+            height: 20.w,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: colors.primary,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -29,7 +39,7 @@ class AppFullScreenLoader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: context.colors.text.withValues(alpha: 0.18),
+      color: context.colors.background,
       child: const AppLoader(),
     );
   }

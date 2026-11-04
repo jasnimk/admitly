@@ -15,7 +15,7 @@ class AppLoadingScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Image.asset(
-              colors.isDark ? 'assets/logo/logo_light.png' : 'assets/logo/logo_dark.png',
+              colors.isDark ? 'assets/logo/logo_dark.png' : 'assets/logo/logo_light.png',
               width: 64.w,
               height: 64.w,
               fit: BoxFit.contain,

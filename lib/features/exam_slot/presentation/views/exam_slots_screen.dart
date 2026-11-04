@@ -1,4 +1,5 @@
 import 'package:admitly/core/constants/app_colors.dart';
+import 'package:admitly/core/widgets/app_loader.dart';
 import 'package:admitly/core/constants/app_text_styles.dart';
 import 'package:admitly/features/exam_slot/domain/entities/exam_slot_entity.dart';
 import 'package:admitly/features/exam_slot/presentation/bloc/exam_slot_bloc.dart';
@@ -31,7 +32,7 @@ class _ExamSlotsScreenState extends State<ExamSlotsScreen> {
     return BlocBuilder<ExamSlotBloc, ExamSlotState>(
       builder: (context, state) {
         if (state is ExamSlotLoading) {
-          return Center(child: CircularProgressIndicator(color: colors.primary));
+          return const AppLoader();
         }
         if (state is ExamSlotError) {
           return Center(

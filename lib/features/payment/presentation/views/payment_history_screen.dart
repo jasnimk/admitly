@@ -1,4 +1,5 @@
 import 'package:admitly/core/constants/app_colors.dart';
+import 'package:admitly/core/widgets/app_loader.dart';
 import 'package:admitly/core/constants/app_text_styles.dart';
 import 'package:admitly/features/payment/domain/entities/payment_entity.dart';
 import 'package:admitly/features/payment/presentation/bloc/payment_bloc.dart';
@@ -20,7 +21,7 @@ class PaymentHistoryScreen extends StatelessWidget {
     return BlocBuilder<PaymentBloc, PaymentState>(
       builder: (context, state) {
         if (state is PaymentLoading) {
-          return Center(child: CircularProgressIndicator(color: colors.primary));
+          return const AppLoader();
         }
         if (state is PaymentError) {
           return Center(

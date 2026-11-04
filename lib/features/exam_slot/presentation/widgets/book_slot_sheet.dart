@@ -1,4 +1,5 @@
 import 'package:admitly/core/constants/app_colors.dart';
+import 'package:admitly/core/widgets/app_loader.dart';
 import 'package:admitly/core/constants/app_text_styles.dart';
 import 'package:admitly/core/widgets/app_snack_bar.dart';
 import 'package:admitly/features/exam_slot/domain/entities/exam_slot_entity.dart';
@@ -108,7 +109,7 @@ class _BookSlotSheetState extends State<_BookSlotSheet> {
                 child: BlocBuilder<ExamSlotBloc, ExamSlotState>(
                   builder: (context, state) {
                     if (state is ExamSlotLoading) {
-                      return const Center(child: CircularProgressIndicator());
+                      return const AppLoader();
                     }
                     if (state is ExamSlotError) {
                       return Center(
