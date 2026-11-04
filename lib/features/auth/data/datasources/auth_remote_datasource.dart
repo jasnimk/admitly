@@ -17,6 +17,8 @@ abstract class AuthRemoteDataSource {
   Future<void> logout();
   Future<UserModel?> getCurrentUser();
   Future<UserModel> refreshUser(String uid);
+  Future<void> resetPassword(String email);
+  Future<UserModel> updateProfile(String uid, String name);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -142,6 +144,24 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<UserModel> refreshUser(String uid) => _fetchUserFromFirestore(uid);
 
+  @override
+  Future<void> resetPassword(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email.trim());
+      appLogger.i('Password reset email sent to $email');
+    } on FirebaseAuthException catch (e) {
+      appLogger.w('Password reset failed for $email: ${e.code}');
+      throw AuthException(_authErrorMessage(e.code));
+    }
+  }
+
+  @override
+  Future<UserModel> updateProfile(String uid, String name) async {
+    await _firestore.collection('users').doc(uid).update({'name': name});
+    appLogger.i('Profile updated: $uid');
+    return await _fetchUserFromFirestore(uid);
+  }
+
   Future<UserModel> _fetchUserFromFirestore(String uid) async {
     final doc = await _firestore.collection('users').doc(uid).get();
     if (!doc.exists) throw const AuthException('User profile not found');
@@ -149,7 +169,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   String _authErrorMessage(String code) => switch (code) {
-        'user-not-found' => 'No account found with this email',
+        'user-not-found' || 'email-not-found' || 'invalid-credential' => 'No account found with this email',
         'wrong-password' => 'Incorrect password',
         'email-already-in-use' => 'Email is already registered',
         'invalid-email' => 'Invalid email address',

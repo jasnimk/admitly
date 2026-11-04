@@ -1,12 +1,17 @@
 import 'package:admitly/app.dart';
 import 'package:admitly/core/constants/app_colors.dart';
+import 'package:admitly/core/utils/app_logger.dart';
 import 'package:admitly/core/constants/app_text_styles.dart';
 import 'package:admitly/core/services/biometric_service.dart';
 import 'package:admitly/core/services/secure_storage_service.dart';
+import 'package:admitly/core/utils/validators.dart';
+import 'package:admitly/core/widgets/app_button.dart';
 import 'package:admitly/core/widgets/app_snack_bar.dart';
+import 'package:admitly/core/widgets/app_text_field.dart';
 import 'package:admitly/features/auth/domain/entities/user_entity.dart';
 import 'package:admitly/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:admitly/features/auth/presentation/bloc/auth_event.dart';
+import 'package:admitly/features/auth/presentation/bloc/auth_state.dart';
 import 'package:admitly/features/payment/presentation/bloc/payment_bloc.dart';
 import 'package:admitly/features/payment/presentation/bloc/payment_event.dart';
 import 'package:admitly/features/payment/presentation/views/payment_history_screen.dart';
@@ -124,15 +129,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  void _showEditProfileSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: context.colors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (sheetCtx) => BlocProvider.value(
+        value: context.read<AuthBloc>(),
+        child: Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(sheetCtx).viewInsets.bottom),
+          child: _EditProfileSheet(user: widget.user),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return ListView(
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (ctx, state) {
+        if (state is AuthProfileUpdated) {
+          AppSnackBar.show(context, 'Profile updated', type: SnackBarType.success);
+        } else if (state is AuthError) {
+          AppSnackBar.show(context, state.message, type: SnackBarType.error);
+        }
+      },
+      child: ListView(
       padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 40.h),
       children: [
         ProfileHeader(user: widget.user),
         SizedBox(height: 28.h),
+        ProfileSectionCard(
+          children: [
+            ProfileActionTile(
+              icon: Icons.edit_outlined,
+              label: 'Edit Profile',
+              color: colors.text,
+              onTap: () => _showEditProfileSheet(context),
+            ),
+          ],
+        ),
+        SizedBox(height: 12.h),
         if (widget.user.role != UserRole.parent) ...[
           ProfileSectionCard(
             children: [
@@ -211,6 +253,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ],
+      ),
     );
   }
 }
@@ -278,3 +321,107 @@ class _ThemePicker extends StatelessWidget {
     );
   }
 }
+
+class _EditProfileSheet extends StatefulWidget {
+  const _EditProfileSheet({required this.user});
+  final UserEntity user;
+
+  @override
+  State<_EditProfileSheet> createState() => _EditProfileSheetState();
+}
+
+class _EditProfileSheetState extends State<_EditProfileSheet> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _nameCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameCtrl = TextEditingController(text: widget.user.name);
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (_, curr) => curr is AuthError || curr is AuthProfileUpdated,
+      listener: (ctx, state) {
+        if (state is AuthProfileUpdated) {
+          appLogger.i('[EditProfile] showing success snackbar');
+          AppSnackBar.show(ctx, 'Profile updated', type: SnackBarType.success);
+          appLogger.i('[EditProfile] closing bottom sheet');
+          Navigator.of(ctx).pop();
+        } else if (state is AuthError) {
+          appLogger.w('[EditProfile] showing error snackbar: ${state.message}');
+          AppSnackBar.show(ctx, state.message, type: SnackBarType.error);
+        }
+      },
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 20.h),
+          child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36.w,
+                      height: 4.h,
+                      decoration: BoxDecoration(
+                        color: colors.border,
+                        borderRadius: BorderRadius.circular(2.r),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20.h),
+                  Text(
+                    'Edit Profile',
+                    style: AppTextStyles.plusJakartaSans(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: colors.text,
+                    ),
+                  ),
+                  SizedBox(height: 20.h),
+                  AppTextField(
+                    label: 'Name',
+                    hint: 'Your full name',
+                    controller: _nameCtrl,
+                    textInputAction: TextInputAction.done,
+                    validator: Validators.name,
+                  ),
+                  SizedBox(height: 20.h),
+                  BlocBuilder<AuthBloc, AuthState>(
+                    builder: (ctx, state) => AppButton(
+                      label: 'Save Changes',
+                      isLoading: state is AuthLoading,
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          ctx.read<AuthBloc>().add(
+                                AuthProfileUpdateRequested(
+                                  uid: widget.user.uid,
+                                  name: _nameCtrl.text.trim(),
+                                ),
+                              );
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+    );
+  }
+}
+

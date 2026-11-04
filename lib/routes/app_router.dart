@@ -60,6 +60,9 @@ class _AuthGate extends StatelessWidget {
           if (state is AuthAuthenticated) {
             return _homeForRole(state.user);
           }
+          if (state is AuthProfileUpdated) {
+            return _homeForRole(state.user);
+          }
           return const _LoginWrapper();
         },
       ),

@@ -68,3 +68,20 @@ class AuthCheckVerificationRequested extends AuthEvent {
   @override
   List<Object?> get props => [user];
 }
+
+class AuthPasswordResetRequested extends AuthEvent {
+  const AuthPasswordResetRequested(this.email);
+  final String email;
+
+  @override
+  List<Object?> get props => [email];
+}
+
+class AuthProfileUpdateRequested extends AuthEvent {
+  const AuthProfileUpdateRequested({required this.uid, required this.name});
+  final String uid;
+  final String name;
+
+  @override
+  List<Object?> get props => [uid, name];
+}

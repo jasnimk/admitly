@@ -8,7 +8,7 @@ Flutter + Firebase app for managing school admissions across two user roles.
 
 **Parent** — registers (email/password or Google), adds student details, optionally pays the registration fee, books an entrance exam slot, tracks application status.
 
-**Admission Team** — logs in with predefined credentials (not publicly registerable). Views all applications, creates exam slots, enters exam scores, assigns courses.
+**Admission Team** — registers through the same screen (selecting the Admission Team role), pending admin approval before access is granted. Views all applications, creates exam slots, enters exam scores, assigns courses.
 
 **Status pipeline:**
 ```
@@ -36,9 +36,30 @@ BLoC handles all state — loading, success, error. No Firebase calls in UI widg
 
 ---
 
+## Authentication Notes
+
+**Google Sign-In** — if no existing account is found in Firestore for the Google user, they are automatically registered as a Parent. There is no role selection for Google sign-in.
+
+**Admission Team accounts** — registered through the app's register screen (Admission Team role option). The account starts with `isVerified: false`; the n8n webhook fires immediately after registration to notify the admin. The admin sets `isVerified: true` in Firestore via the n8n flow. Until approved, the member sees a pending screen with a "Check Status" button.
+
+---
+
+## Automation — n8n Integration
+
+When a new Admission Team account is created, the app fires a fire-and-forget HTTP POST:
+
+```
+POST https://admitly.app.n8n.cloud/webhook/admitly-register
+{ "userId": "...", "email": "...", "name": "...", "adminEmail": "..." }
+```
+
+Non-blocking — if it fails, the account creation still succeeds and the error is only logged locally. The n8n workflow handles the downstream approval notification. The webhook URL and admin email are defined in `AppConstants`.
+
+---
+
 ## Tech Stack
 
-`flutter_bloc`, `get_it`, `go_router`, `firebase_auth`, `google_sign_in`, `cloud_firestore`, `razorpay_flutter`, `flutter_secure_storage`, `local_auth`, `dartz`, `flutter_screenutil`
+`flutter_bloc`, `get_it`, `firebase_auth`, `google_sign_in`, `cloud_firestore`, `razorpay_flutter`, `flutter_secure_storage`, `local_auth`, `dartz`, `flutter_screenutil`
 
 Testing: `bloc_test`, `mocktail`
 
@@ -58,4 +79,3 @@ flutter test
 
 - Exam slot booking transaction runs client-side. The Firestore rule currently allows any authenticated user to update a slot so the booking transaction can increment `bookedCount`. Ideally this moves to a Cloud Function with field-level validation.
 - Razorpay test mode has limited payment methods without KYC activation. Net banking works; card/UPI may not in test.
-- Admission team accounts must be created manually in Firebase — there is no in-app registration flow for that role.

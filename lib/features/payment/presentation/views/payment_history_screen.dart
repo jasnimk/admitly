@@ -12,7 +12,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 
 class PaymentHistoryScreen extends StatelessWidget {
-  const PaymentHistoryScreen({super.key});
+  const PaymentHistoryScreen({super.key, this.parentId});
+
+  final String? parentId;
 
   @override
   Widget build(BuildContext context) {
@@ -48,8 +50,11 @@ class PaymentHistoryScreen extends StatelessWidget {
             );
           }
           return RefreshIndicator(
-            onRefresh: () async =>
-                context.read<PaymentBloc>().add(const PaymentLoadAllRequested()),
+            onRefresh: () async => context.read<PaymentBloc>().add(
+                  parentId != null
+                      ? PaymentLoadByParentRequested(parentId!)
+                      : const PaymentLoadAllRequested(),
+                ),
             child: ListView.separated(
               padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 100.h),
               itemCount: state.payments.length,

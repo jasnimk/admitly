@@ -40,6 +40,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthBiometricLoginRequested>(_onBiometricLoginRequested);
     on<AuthBiometricSetupRequested>(_onBiometricSetupRequested);
     on<AuthCheckVerificationRequested>(_onCheckVerification);
+    on<AuthPasswordResetRequested>(_onPasswordResetRequested);
+    on<AuthProfileUpdateRequested>(_onProfileUpdateRequested);
   }
 
   final LoginUseCase _login;
@@ -152,6 +154,34 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       (user) async {
         appLogger.i('Verification check: isVerified=${user.isVerified}');
         await _emitPostAuthState(user, emit);
+      },
+    );
+  }
+
+  Future<void> _onPasswordResetRequested(AuthPasswordResetRequested event, Emitter<AuthState> emit) async {
+    final result = await _repository.resetPassword(event.email);
+    result.fold(
+      (failure) {
+        appLogger.w('Password reset failed: ${failure.message}');
+        emit(AuthError(failure.message));
+      },
+      (_) {
+        appLogger.i('Password reset sent: ${event.email}');
+        emit(const AuthPasswordResetSent());
+      },
+    );
+  }
+
+  Future<void> _onProfileUpdateRequested(AuthProfileUpdateRequested event, Emitter<AuthState> emit) async {
+    final result = await _repository.updateProfile(event.uid, event.name);
+    result.fold(
+      (failure) {
+        appLogger.w('Profile update failed: ${failure.message}');
+        emit(AuthError(failure.message));
+      },
+      (user) {
+        appLogger.i('Profile updated: ${event.uid} name="${event.name}"');
+        emit(AuthProfileUpdated(user));
       },
     );
   }

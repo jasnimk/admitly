@@ -30,6 +30,8 @@ class StudentRemoteDataSourceImpl implements StudentRemoteDataSource {
       applyingGrade: student.applyingGrade,
       status: ApplicationStatus.applicationCreated,
       createdAt: DateTime.now(),
+      parentEmail: student.parentEmail,
+      parentPhone: student.parentPhone,
     );
     await doc.set(model.toMap());
     appLogger.i('Student created: ${doc.id}');

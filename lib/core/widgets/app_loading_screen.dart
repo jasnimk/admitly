@@ -16,8 +16,8 @@ class AppLoadingScreen extends StatelessWidget {
           children: [
             Image.asset(
               colors.isDark ? 'assets/logo/logo_dark.png' : 'assets/logo/logo_light.png',
-              width: 64.w,
-              height: 64.w,
+              width: 88.w,
+              height: 88.w,
               fit: BoxFit.contain,
             ),
             SizedBox(height: 24.h),

@@ -52,12 +52,12 @@ class _MainShellState extends State<MainShell> {
           activeIcon: Icons.school_rounded,
           page: StudentListScreen(user: widget.user),
         ),
-        const _ShellTab(
+        _ShellTab(
           title: 'Payments',
           label: 'Payments',
           icon: Icons.receipt_long_outlined,
           activeIcon: Icons.receipt_long_rounded,
-          page: PaymentHistoryScreen(),
+          page: PaymentHistoryScreen(parentId: widget.user.uid),
         ),
         _ShellTab(
           title: 'Profile',

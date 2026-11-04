@@ -58,3 +58,15 @@ class AuthPendingVerification extends AuthState {
   @override
   List<Object?> get props => [user];
 }
+
+class AuthPasswordResetSent extends AuthState {
+  const AuthPasswordResetSent();
+}
+
+class AuthProfileUpdated extends AuthState {
+  const AuthProfileUpdated(this.user);
+  final UserEntity user;
+
+  @override
+  List<Object?> get props => [user];
+}

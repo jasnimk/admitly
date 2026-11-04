@@ -14,8 +14,8 @@ class AppLoader extends StatelessWidget {
         children: [
           Image.asset(
             colors.isDark ? 'assets/logo/logo_dark.png' : 'assets/logo/logo_light.png',
-            width: 52.w,
-            height: 52.w,
+            width: 72.w,
+            height: 72.w,
             fit: BoxFit.contain,
           ),
           SizedBox(height: 20.h),
