@@ -103,7 +103,7 @@ class _AssignCourseContentState extends State<_AssignCourseContent> {
                   style: AppTextStyles.plusJakartaSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: selected ? Colors.white : colors.text,
+                    color: selected ? colors.white : colors.text,
                   ),
                 ),
               ),

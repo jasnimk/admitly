@@ -28,7 +28,7 @@ class ProfileHeader extends StatelessWidget {
                 style: AppTextStyles.plusJakartaSans(
                   fontSize: 24,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  color: colors.white,
                 ),
               ),
             ),

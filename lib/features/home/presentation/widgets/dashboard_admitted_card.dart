@@ -20,9 +20,9 @@ class DashboardAdmittedCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: colors.primary.withValues(alpha: 0.07),
+        color: colors.surface,
         borderRadius: BorderRadius.circular(14.r),
-        border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
+        border: Border.all(color: colors.border),
       ),
       child: Row(
         children: [

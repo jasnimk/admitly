@@ -8,9 +8,11 @@ class AdminActionRow extends StatelessWidget {
     super.key,
     required this.primary,
     required this.onEditScore,
+    this.onEnablePayment,
   });
   final Widget primary;
   final VoidCallback onEditScore;
+  final VoidCallback? onEnablePayment;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +37,24 @@ class AdminActionRow extends StatelessWidget {
             ),
           ),
         ),
+        if (onEnablePayment != null) ...[
+          Divider(height: 1, color: colors.border),
+          GestureDetector(
+            onTap: onEnablePayment,
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 8.h),
+              child: Text(
+                'Enable Payment',
+                style: AppTextStyles.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: colors.primary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

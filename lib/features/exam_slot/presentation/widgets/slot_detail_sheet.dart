@@ -262,7 +262,7 @@ class _SlotDetailSheetState extends State<_SlotDetailSheet> {
                   child: AppButton(
                     label: 'Edit Slot',
                     onPressed: _onEdit,
-                    icon: Icon(Icons.edit_outlined, size: 18.w, color: Colors.white),
+                    icon: Icon(Icons.edit_outlined, size: 18.w, color: context.colors.white),
                   ),
                 ),
               ],

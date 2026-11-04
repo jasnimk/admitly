@@ -9,11 +9,13 @@ class ProfileActionTile extends StatelessWidget {
     required this.label,
     required this.color,
     required this.onTap,
+    this.trailing,
   });
   final IconData icon;
   final String label;
   final Color color;
   final VoidCallback onTap;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -26,11 +28,14 @@ class ProfileActionTile extends StatelessWidget {
           children: [
             Icon(icon, size: 22.w, color: color),
             SizedBox(width: 14.w),
-            Text(
-              label,
-              style: AppTextStyles.plusJakartaSans(
-                  fontSize: 14, fontWeight: FontWeight.w600, color: color),
+            Expanded(
+              child: Text(
+                label,
+                style: AppTextStyles.plusJakartaSans(
+                    fontSize: 14, fontWeight: FontWeight.w600, color: color),
+              ),
             ),
+            if (trailing != null) trailing!,
           ],
         ),
       ),

@@ -262,7 +262,7 @@ class _ReceiptRow extends StatelessWidget {
                   SnackBar(
                     content: Text('Copied',
                         style: AppTextStyles.plusJakartaSans(
-                            fontSize: 13, color: Colors.white)),
+                            fontSize: 13, color: colors.white)),
                     duration: const Duration(seconds: 1),
                     backgroundColor: colors.primary,
                   ),

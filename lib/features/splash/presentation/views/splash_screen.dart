@@ -75,7 +75,9 @@ class _SplashScreenState extends State<SplashScreen>
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) => _onAuthState(state),
       child: Scaffold(
-        backgroundColor: colors.white,
+        backgroundColor: colors.isDark
+            ? const Color(0xFF15171F)
+            : const Color(0xFFF0F2F4),
         body: Center(
           child: FadeTransition(
             opacity: _fadeAnim,
@@ -86,15 +88,15 @@ class _SplashScreenState extends State<SplashScreen>
                 children: [
                   Image.asset(
                     colors.isDark
-                        ? 'assets/logo/logo_light.png'
-                        : 'assets/logo/logo_dark.png',
+                        ? 'assets/logo/logo_dark.png'
+                        : 'assets/logo/logo_light.png',
                     width: 100.w,
                     height: 100.w,
                     fit: BoxFit.contain,
                   ),
-                  SizedBox(height: 20.h),
+                  SizedBox(height: 10.h),
                   Text(
-                    'admitly',
+                    'Admitly',
                     style: AppTextStyles.plusJakartaSans(
                       fontSize: 30,
                       fontWeight: FontWeight.w700,

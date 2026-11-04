@@ -156,7 +156,7 @@ class _FilterTabBar extends StatelessWidget {
           indicatorSize: TabBarIndicatorSize.tab,
           indicatorPadding: EdgeInsets.all(3.r),
           labelColor: colors.primary,
-          unselectedLabelColor: colors.mist,
+          unselectedLabelColor: colors.white,
           labelStyle: AppTextStyles.plusJakartaSans(
             fontSize: 12,
             fontWeight: FontWeight.w600,

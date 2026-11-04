@@ -114,10 +114,10 @@ class _MainShellState extends State<MainShell> {
           style: AppTextStyles.plusJakartaSans(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Colors.white,
+            color: ctx.colors.white,
           ),
         ),
-        icon: const Icon(Icons.add, color: Colors.white),
+        icon: Icon(Icons.add, color: ctx.colors.white),
       );
     }
     if (!_isParent && _currentIndex == 2) {
@@ -125,13 +125,13 @@ class _MainShellState extends State<MainShell> {
         heroTag: 'fab_create_slot',
         onPressed: () => showCreateSlotSheet(ctx),
         backgroundColor: ctx.colors.primary,
-        icon: const Icon(Icons.add, color: Colors.white),
+        icon: Icon(Icons.add, color: ctx.colors.white),
         label: Text(
           'Create Slot',
           style: AppTextStyles.plusJakartaSans(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Colors.white,
+            color: ctx.colors.white,
           ),
         ),
       );

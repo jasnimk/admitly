@@ -185,15 +185,15 @@ class _BookSlotSheetState extends State<_BookSlotSheet> {
                             ? SizedBox(
                                 width: 20.w,
                                 height: 20.w,
-                                child: const CircularProgressIndicator(
-                                    color: Colors.white, strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                    color: colors.white, strokeWidth: 2),
                               )
                             : Text(
                                 'Confirm Booking',
                                 style: AppTextStyles.plusJakartaSans(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.white,
+                                  color: colors.white,
                                 ),
                               ),
                       ),

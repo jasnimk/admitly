@@ -74,7 +74,7 @@ class StudentStatusStepper extends StatelessWidget {
                     child: Icon(
                       done ? Icons.check_rounded : icon,
                       size: 14.w,
-                      color: done || active ? Colors.white : colors.grey,
+                      color: done || active ? colors.white : colors.grey,
                     ),
                   ),
                   SizedBox(height: 6.h),

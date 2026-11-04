@@ -22,7 +22,7 @@ class DashboardHeroBanner extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
-        color: colors.primary,
+        color: colors.bannerBackground,
         borderRadius: BorderRadius.circular(18.r),
       ),
       child: Row(
@@ -37,7 +37,7 @@ class DashboardHeroBanner extends StatelessWidget {
                   style: AppTextStyles.plusJakartaSans(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: colors.onBanner,
                   ),
                 ),
                 SizedBox(height: 4.h),
@@ -45,7 +45,7 @@ class DashboardHeroBanner extends StatelessWidget {
                   DateFormat('EEEE, dd MMMM yyyy').format(DateTime.now()),
                   style: AppTextStyles.plusJakartaSans(
                     fontSize: 12,
-                    color: Colors.white.withValues(alpha: 0.6),
+                    color: colors.onBanner.withValues(alpha: 0.6),
                   ),
                 ),
                 SizedBox(height: 16.h),
@@ -60,13 +60,13 @@ class DashboardHeroBanner extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(14.w),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
+              color: colors.onBanner.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(14.r),
             ),
             child: Icon(
               Icons.school_rounded,
               size: 28.w,
-              color: Colors.white.withValues(alpha: 0.9),
+              color: colors.onBanner.withValues(alpha: 0.9),
             ),
           ),
         ],
@@ -82,23 +82,24 @@ class DashboardHeroChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors.onBanner;
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
+        color: c.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(20.r),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 13.w, color: Colors.white),
+          Icon(icon, size: 13.w, color: c),
           SizedBox(width: 5.w),
           Text(
             label,
             style: AppTextStyles.plusJakartaSans(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: Colors.white,
+              color: c,
             ),
           ),
         ],

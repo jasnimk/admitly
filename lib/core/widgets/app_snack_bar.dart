@@ -35,14 +35,14 @@ class AppSnackBar {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
           content: Row(
             children: [
-              Icon(icon, color: Colors.white, size: 20.w),
+              Icon(icon, color: colors.white, size: 20.w),
               SizedBox(width: 10.w),
               Expanded(
                 child: Text(message,
                     style: AppTextStyles.plusJakartaSans(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: Colors.white,
+                      color: colors.white,
                     )),
               ),
             ],

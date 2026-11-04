@@ -276,7 +276,7 @@ class _CreateStudentSheetState extends State<_CreateStudentSheet> {
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
                                     color: selected
-                                        ? Colors.white
+                                        ? colors.white
                                         : colors.text,
                                   ),
                                 ),

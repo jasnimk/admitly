@@ -145,6 +145,14 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
         );
   }
 
+  void _onEnablePayment() {
+    context.read<StudentBloc>().add(
+          StudentUpdateRequested(
+            _student.copyWith(status: ApplicationStatus.applicationCreated),
+          ),
+        );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
@@ -276,11 +284,22 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 
   Widget _adminActions(AppColors colors) {
     return switch (_student.status) {
-      ApplicationStatus.slotBooked => StudentActionButton(
-          label: 'Enter Exam Score',
-          icon: Icons.quiz_outlined,
-          color: colors.accent,
-          onTap: _onEnterScore,
+      ApplicationStatus.feeSkipped => StudentActionButton(
+          label: 'Enable Payment',
+          icon: Icons.payment_outlined,
+          color: colors.primary,
+          onTap: _onEnablePayment,
+        ),
+      ApplicationStatus.slotBooked => AdminActionRow(
+          primary: StudentActionButton(
+            label: 'Enter Exam Score',
+            icon: Icons.quiz_outlined,
+            color: colors.accent,
+            onTap: _onEnterScore,
+          ),
+          onEditScore: _onEnterScore,
+          onEnablePayment:
+              _student.paymentStatus != 'paid' ? _onEnablePayment : null,
         ),
       ApplicationStatus.examCompleted when _student.assignedCourse == null =>
         AdminActionRow(

@@ -1,3 +1,4 @@
+import 'package:admitly/app.dart';
 import 'package:admitly/core/constants/app_colors.dart';
 import 'package:admitly/core/constants/app_text_styles.dart';
 import 'package:admitly/core/services/biometric_service.dart';
@@ -29,10 +30,12 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _biometricEnabled = false;
   bool _biometricAvailable = false;
+  late ThemeMode _themeMode;
 
   @override
   void initState() {
     super.initState();
+    _themeMode = themeNotifier.value;
     _loadBiometricState();
   }
 
@@ -45,6 +48,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _biometricEnabled = enabled;
     });
   }
+
+  Future<void> _pickTheme(BuildContext context) async {
+    final colors = context.colors;
+    final picked = await showModalBottomSheet<ThemeMode>(
+      context: context,
+      backgroundColor: colors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (ctx) => _ThemePicker(current: _themeMode),
+    );
+    if (picked == null || !mounted) return;
+    setState(() => _themeMode = picked);
+    themeNotifier.value = picked;
+    await sl<SecureStorageService>().setThemeMode(picked);
+  }
+
+  String get _themeLabel => switch (_themeMode) {
+        ThemeMode.light => 'Light',
+        ThemeMode.dark => 'Dark',
+        _ => 'System',
+      };
 
   Future<void> _confirmLogout(BuildContext context) async {
     final colors = context.colors;
@@ -152,7 +177,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
         ProfileSectionCard(
           children: [
-            if (_biometricAvailable)
+            ProfileActionTile(
+              icon: Icons.brightness_6_outlined,
+              label: 'Appearance',
+              color: colors.text,
+              onTap: () => _pickTheme(context),
+              trailing: Text(
+                _themeLabel,
+                style: AppTextStyles.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: colors.grey,
+                ),
+              ),
+            ),
+            Divider(color: colors.border, height: 1),
+            if (_biometricAvailable) ...[
               ProfileToggleTile(
                 icon: Icons.fingerprint_rounded,
                 label: 'Biometric Login',
@@ -160,7 +200,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 value: _biometricEnabled,
                 onChanged: _toggleBiometric,
               ),
-            if (_biometricAvailable) Divider(color: colors.border, height: 1),
+              Divider(color: colors.border, height: 1),
+            ],
             ProfileActionTile(
               icon: Icons.logout_rounded,
               label: 'Log Out',
@@ -170,6 +211,70 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ],
+    );
+  }
+}
+
+class _ThemePicker extends StatelessWidget {
+  const _ThemePicker({required this.current});
+  final ThemeMode current;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final options = [
+      (ThemeMode.system, Icons.brightness_auto_outlined, 'System'),
+      (ThemeMode.light, Icons.light_mode_outlined, 'Light'),
+      (ThemeMode.dark, Icons.dark_mode_outlined, 'Dark'),
+    ];
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(height: 12.h),
+          Container(
+            width: 36.w,
+            height: 4.h,
+            decoration: BoxDecoration(
+              color: colors.border,
+              borderRadius: BorderRadius.circular(2.r),
+            ),
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            'Appearance',
+            style: AppTextStyles.plusJakartaSans(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: colors.text,
+            ),
+          ),
+          SizedBox(height: 12.h),
+          ...options.map((o) {
+            final selected = current == o.$1;
+            return ListTile(
+              leading: Icon(
+                o.$2,
+                color: selected ? colors.primary : colors.grey,
+                size: 22.w,
+              ),
+              title: Text(
+                o.$3,
+                style: AppTextStyles.plusJakartaSans(
+                  fontSize: 14,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  color: selected ? colors.primary : colors.text,
+                ),
+              ),
+              trailing: selected
+                  ? Icon(Icons.check_rounded, color: colors.primary, size: 20.w)
+                  : null,
+              onTap: () => Navigator.pop(context, o.$1),
+            );
+          }),
+          SizedBox(height: 8.h),
+        ],
+      ),
     );
   }
 }
