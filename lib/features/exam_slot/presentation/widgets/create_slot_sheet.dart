@@ -12,12 +12,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 
 Future<void> showCreateSlotSheet(BuildContext context, {ExamSlotEntity? slot}) {
+  final bloc = context.read<ExamSlotBloc>();
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (_) => BlocProvider.value(
-      value: context.read<ExamSlotBloc>(),
+      value: bloc,
       child: _CreateSlotSheet(slot: slot),
     ),
   );
