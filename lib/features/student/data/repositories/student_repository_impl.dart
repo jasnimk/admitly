@@ -27,6 +27,16 @@ class StudentRepositoryImpl implements StudentRepository {
   }
 
   @override
+  Future<Either<Failure, void>> deleteStudent(String id) async {
+    try {
+      await _dataSource.deleteStudent(id);
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, List<StudentEntity>>> getStudentsByParent(String parentId) async {
     try {
       return Right(await _dataSource.getStudentsByParent(parentId));
@@ -44,12 +54,4 @@ class StudentRepositoryImpl implements StudentRepository {
     }
   }
 
-  @override
-  Future<Either<Failure, StudentEntity>> getStudentById(String id) async {
-    try {
-      return Right(await _dataSource.getStudentById(id));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
 }

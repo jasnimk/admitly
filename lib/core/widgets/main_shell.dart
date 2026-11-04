@@ -7,6 +7,9 @@ import 'package:admitly/features/exam_slot/presentation/views/exam_slots_screen.
 import 'package:admitly/features/exam_slot/presentation/widgets/create_slot_sheet.dart';
 import 'package:admitly/features/home/presentation/views/admin_dashboard_screen.dart';
 import 'package:admitly/features/home/presentation/views/parent_home_screen.dart';
+import 'package:admitly/features/payment/presentation/bloc/payment_bloc.dart';
+import 'package:admitly/features/payment/presentation/bloc/payment_event.dart';
+import 'package:admitly/features/payment/presentation/views/payment_history_screen.dart';
 import 'package:admitly/features/profile/presentation/views/profile_screen.dart';
 import 'package:admitly/features/student/presentation/bloc/student_bloc.dart';
 import 'package:admitly/features/student/presentation/views/student_list_screen.dart';
@@ -48,6 +51,13 @@ class _MainShellState extends State<MainShell> {
           icon: Icons.school_outlined,
           activeIcon: Icons.school_rounded,
           page: StudentListScreen(user: widget.user),
+        ),
+        const _ShellTab(
+          title: 'Payments',
+          label: 'Payments',
+          icon: Icons.receipt_long_outlined,
+          activeIcon: Icons.receipt_long_rounded,
+          page: PaymentHistoryScreen(),
         ),
         _ShellTab(
           title: 'Profile',
@@ -142,6 +152,12 @@ class _MainShellState extends State<MainShell> {
         BlocProvider<ExamSlotBloc>(
           create: (_) => sl<ExamSlotBloc>(),
         ),
+        BlocProvider<PaymentBloc>(
+          create: (_) => sl<PaymentBloc>()
+            ..add(_isParent
+                ? PaymentLoadByParentRequested(widget.user.uid)
+                : const PaymentLoadAllRequested()),
+        ),
       ],
       child: Builder(
         builder: (context) {
@@ -167,7 +183,16 @@ class _MainShellState extends State<MainShell> {
             floatingActionButton: _buildFab(context),
             bottomNavigationBar: NavigationBar(
               selectedIndex: _currentIndex,
-              onDestinationSelected: (i) => setState(() => _currentIndex = i),
+              onDestinationSelected: (i) {
+                setState(() => _currentIndex = i);
+                // Reload payments whenever the tab is opened
+                final paymentTabIndex = _isParent ? 2 : -1;
+                if (i == paymentTabIndex) {
+                  context.read<PaymentBloc>().add(
+                        PaymentLoadByParentRequested(widget.user.uid),
+                      );
+                }
+              },
               backgroundColor: colors.surface,
               surfaceTintColor: Colors.transparent,
               indicatorColor: colors.primary.withValues(alpha: 0.12),

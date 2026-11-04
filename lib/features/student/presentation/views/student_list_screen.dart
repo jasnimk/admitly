@@ -44,7 +44,12 @@ class _StudentListScreenState extends State<StudentListScreen> {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return BlocBuilder<StudentBloc, StudentState>(
+    return BlocConsumer<StudentBloc, StudentState>(
+        listener: (context, state) {
+          if (state is StudentActionSuccess) {
+            context.read<StudentBloc>().add(StudentLoadRequested(widget.user.uid));
+          }
+        },
         builder: (context, state) {
           if (state is StudentLoading) {
             return const Center(child: CircularProgressIndicator());

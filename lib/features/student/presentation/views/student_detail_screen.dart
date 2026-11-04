@@ -1,7 +1,11 @@
 import 'package:admitly/core/constants/app_colors.dart';
 import 'package:admitly/core/constants/app_text_styles.dart';
+import 'package:admitly/core/widgets/app_status_badge.dart';
 import 'package:admitly/features/auth/domain/entities/user_entity.dart';
+import 'package:admitly/features/exam_slot/domain/entities/exam_slot_entity.dart';
+import 'package:admitly/features/exam_slot/domain/usecases/get_all_slots_usecase.dart';
 import 'package:admitly/features/exam_slot/presentation/widgets/book_slot_sheet.dart';
+import 'package:admitly/injection_container.dart' show sl;
 import 'package:admitly/features/student/domain/entities/student_entity.dart';
 import 'package:admitly/features/student/presentation/bloc/student_bloc.dart';
 import 'package:admitly/features/student/presentation/bloc/student_event.dart';
@@ -36,6 +40,44 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   void initState() {
     super.initState();
     _student = widget.student;
+  }
+
+  Future<void> _onDelete() async {
+    final colors = context.colors;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: colors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        title: Text(
+          'Remove Student?',
+          style: AppTextStyles.plusJakartaSans(
+              fontSize: 16, fontWeight: FontWeight.w700, color: colors.text),
+        ),
+        content: Text(
+          'This will permanently delete ${_student.name}\'s application. This cannot be undone.',
+          style: AppTextStyles.plusJakartaSans(fontSize: 14, color: colors.secondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('Cancel',
+                style: AppTextStyles.plusJakartaSans(
+                    fontSize: 14, fontWeight: FontWeight.w600, color: colors.secondary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text('Delete',
+                style: AppTextStyles.plusJakartaSans(
+                    fontSize: 14, fontWeight: FontWeight.w600, color: colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      // ignore: use_build_context_synchronously
+      context.read<StudentBloc>().add(StudentDeleteRequested(_student.id));
+    }
   }
 
   void _onEdit() async {
@@ -76,6 +118,9 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
               .firstOrNull;
           if (updated != null) setState(() => _student = updated);
         }
+        if (state is StudentActionSuccess && state.student == null) {
+          Navigator.pop(context);
+        }
       },
       child: Scaffold(
         backgroundColor: colors.background,
@@ -96,11 +141,17 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
             ),
           ),
           actions: [
-            if (isParent && _student.isEditable)
+            if (isParent && _student.isEditable) ...[
               IconButton(
                 icon: Icon(Icons.edit_outlined, size: 20.w, color: colors.text),
                 onPressed: _onEdit,
               ),
+              if (_student.status == ApplicationStatus.applicationCreated)
+                IconButton(
+                  icon: Icon(Icons.delete_outline_rounded, size: 20.w, color: colors.red),
+                  onPressed: _onDelete,
+                ),
+            ],
           ],
         ),
         body: ListView(
@@ -264,7 +315,22 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
           color: colors.accent,
           onTap: _onBookSlot,
         ),
-      _ => const SizedBox.shrink(),
+      ApplicationStatus.slotBooked => _InfoBanner(
+          icon: Icons.hourglass_top_rounded,
+          message: 'Exam slot confirmed. Please arrive on time on the exam day.',
+          colors: colors,
+        ),
+      ApplicationStatus.examCompleted => _InfoBanner(
+          icon: Icons.pending_outlined,
+          message: 'Exam completed. The school is reviewing results.',
+          colors: colors,
+        ),
+      _ => _InfoBanner(
+          icon: Icons.celebration_outlined,
+          message: 'Congratulations! Admission is complete.',
+          colors: colors,
+          success: true,
+        ),
     };
   }
 }
@@ -506,13 +572,37 @@ class _DetailsCard extends StatelessWidget {
   }
 }
 
-class _SlotInfoCard extends StatelessWidget {
+class _SlotInfoCard extends StatefulWidget {
   const _SlotInfoCard({required this.slotId, required this.colors});
   final String slotId;
   final AppColors colors;
 
   @override
+  State<_SlotInfoCard> createState() => _SlotInfoCardState();
+}
+
+class _SlotInfoCardState extends State<_SlotInfoCard> {
+  ExamSlotEntity? _slot;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSlot();
+  }
+
+  Future<void> _loadSlot() async {
+    final result = await sl<GetAllSlotsUseCase>().call();
+    result.fold((_) {}, (slots) {
+      final match = slots.where((s) => s.id == widget.slotId).firstOrNull;
+      if (match != null && mounted) setState(() => _slot = match);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final colors = widget.colors;
+    final slot = _slot;
+
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -522,24 +612,38 @@ class _SlotInfoCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.event_available_outlined, color: colors.accent, size: 20.w),
-          SizedBox(width: 10.w),
+          Icon(Icons.event_available_outlined, color: colors.accent, size: 22.w),
+          SizedBox(width: 12.w),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Exam Slot Booked',
+            child: slot == null
+                ? Text('Exam Slot Booked',
                     style: AppTextStyles.plusJakartaSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: colors.accent,
-                    )),
-                Text('Slot ID: $slotId',
-                    style: AppTextStyles.plusJakartaSans(
-                        fontSize: 11, color: colors.accent),
-                    overflow: TextOverflow.ellipsis),
-              ],
-            ),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: colors.accent))
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Exam Slot Confirmed',
+                          style: AppTextStyles.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: colors.accent,
+                          )),
+                      SizedBox(height: 4.h),
+                      Text(
+                        '${DateFormat('EEE, dd MMM yyyy').format(slot.date)}  ·  ${slot.timeLabel}',
+                        style: AppTextStyles.plusJakartaSans(
+                            fontSize: 12, color: colors.accent),
+                      ),
+                      Text(
+                        slot.venue,
+                        style: AppTextStyles.plusJakartaSans(
+                            fontSize: 12,
+                            color: colors.accent.withValues(alpha: 0.7)),
+                      ),
+                    ],
+                  ),
           ),
         ],
       ),
@@ -683,6 +787,7 @@ class _ActionButton extends StatelessWidget {
   }
 }
 
+/// Thin adapter: maps ApplicationStatus → color, then delegates to AppStatusBadge.
 class _StatusBadge extends StatelessWidget {
   const _StatusBadge({required this.status});
   final ApplicationStatus status;
@@ -692,27 +797,13 @@ class _StatusBadge extends StatelessWidget {
     final colors = context.colors;
     final color = switch (status) {
       ApplicationStatus.applicationCreated => colors.subtle,
-      ApplicationStatus.feePaid => colors.accent,
-      ApplicationStatus.feeSkipped => colors.subtle,
-      ApplicationStatus.slotBooked => colors.accent,
-      ApplicationStatus.examCompleted => colors.accent,
+      ApplicationStatus.feePaid           => colors.accent,
+      ApplicationStatus.feeSkipped        => colors.subtle,
+      ApplicationStatus.slotBooked        => colors.accent,
+      ApplicationStatus.examCompleted     => colors.accent,
       ApplicationStatus.admissionCompleted => colors.primary,
     };
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20.r),
-      ),
-      child: Text(
-        status.label,
-        style: AppTextStyles.plusJakartaSans(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
-    );
+    return AppStatusBadge(label: status.label, color: color);
   }
 }
 
@@ -755,6 +846,48 @@ class _ContactButton extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _InfoBanner extends StatelessWidget {
+  const _InfoBanner({
+    required this.icon,
+    required this.message,
+    required this.colors,
+    this.success = false,
+  });
+  final IconData icon;
+  final String message;
+  final AppColors colors;
+  final bool success;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = success ? colors.primary : colors.fog;
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 20.w, color: color),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Text(
+              message,
+              style: AppTextStyles.plusJakartaSans(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: color,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

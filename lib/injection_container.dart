@@ -25,12 +25,15 @@ import 'package:admitly/features/student/data/datasources/student_remote_datasou
 import 'package:admitly/features/student/data/repositories/student_repository_impl.dart';
 import 'package:admitly/features/student/domain/repositories/student_repository.dart';
 import 'package:admitly/features/student/domain/usecases/create_student_usecase.dart';
+import 'package:admitly/features/student/domain/usecases/delete_student_usecase.dart';
 import 'package:admitly/features/student/domain/usecases/get_students_usecase.dart';
 import 'package:admitly/features/student/domain/usecases/update_student_usecase.dart';
 import 'package:admitly/features/payment/data/datasources/payment_remote_datasource.dart';
 import 'package:admitly/features/payment/data/repositories/payment_repository_impl.dart';
 import 'package:admitly/features/payment/domain/repositories/payment_repository.dart';
 import 'package:admitly/features/payment/domain/usecases/create_payment_usecase.dart';
+import 'package:admitly/features/payment/domain/usecases/get_payments_usecase.dart';
+import 'package:admitly/features/payment/presentation/bloc/payment_bloc.dart';
 // ignore: depend_on_referenced_packages
 import 'package:admitly/firebase_options.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -100,11 +103,13 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => GetStudentsByParentUseCase(sl()));
   sl.registerLazySingleton(() => GetAllStudentsUseCase(sl()));
   sl.registerLazySingleton(() => UpdateStudentUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteStudentUseCase(sl()));
   sl.registerFactory(() => StudentBloc(
         createStudentUseCase: sl(),
         getStudentsByParentUseCase: sl(),
         getAllStudentsUseCase: sl(),
         updateStudentUseCase: sl(),
+        deleteStudentUseCase: sl(),
       ));
 
   // Payment
@@ -115,6 +120,12 @@ Future<void> initDependencies() async {
     () => PaymentRepositoryImpl(sl()),
   );
   sl.registerLazySingleton(() => CreatePaymentUseCase(sl()));
+  sl.registerLazySingleton(() => GetPaymentsByParentUseCase(sl()));
+  sl.registerLazySingleton(() => GetAllPaymentsUseCase(sl()));
+  sl.registerFactory(() => PaymentBloc(
+        getPaymentsByParent: sl(),
+        getAllPayments: sl(),
+      ));
 
   sl.registerFactory(() => AuthBloc(
         loginUseCase: sl(),

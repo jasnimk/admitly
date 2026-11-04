@@ -24,7 +24,7 @@ class StudentLoaded extends StudentState {
 
 class StudentActionSuccess extends StudentState {
   const StudentActionSuccess(this.student);
-  final StudentEntity student;
+  final StudentEntity? student;
   @override
   List<Object?> get props => [student];
 }
