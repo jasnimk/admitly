@@ -1,5 +1,6 @@
 import 'package:admitly/core/constants/app_colors.dart';
 import 'package:admitly/core/constants/app_text_styles.dart';
+import 'package:admitly/core/widgets/app_section_header.dart';
 import 'package:admitly/features/auth/domain/entities/user_entity.dart';
 import 'package:admitly/features/student/domain/entities/student_entity.dart';
 import 'package:admitly/features/student/presentation/bloc/student_bloc.dart';
@@ -51,7 +52,12 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
     final colors = context.colors;
     final greeting = _greeting();
 
-    return BlocBuilder<StudentBloc, StudentState>(
+    return BlocConsumer<StudentBloc, StudentState>(
+      listener: (context, state) {
+        if (state is StudentActionSuccess) {
+          context.read<StudentBloc>().add(StudentLoadRequested(widget.user.uid));
+        }
+      },
       builder: (context, state) {
         final students = state is StudentLoaded ? state.students : <StudentEntity>[];
         final pending = students
@@ -74,10 +80,9 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
               _StatsRow(students: students, colors: colors),
               SizedBox(height: 24.h),
               if (pending.isNotEmpty) ...[
-                _SectionHeader(
+                AppSectionHeader(
                   title: 'Pending Actions',
                   subtitle: '${pending.length} application${pending.length > 1 ? 's' : ''} awaiting fee payment',
-                  colors: colors,
                 ),
                 SizedBox(height: 10.h),
                 ...pending.take(2).map((s) => Padding(
@@ -91,11 +96,10 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                 ],
                 SizedBox(height: 24.h),
               ],
-              _SectionHeader(
+              AppSectionHeader(
                 title: 'Recent Applications',
                 actionLabel: students.length > 3 ? 'View all' : null,
                 onAction: students.length > 3 ? widget.onViewAll : null,
-                colors: colors,
               ),
               SizedBox(height: 10.h),
               if (state is StudentLoading)
@@ -224,52 +228,6 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({
-    required this.title,
-    required this.colors,
-    this.subtitle,
-    this.actionLabel,
-    this.onAction,
-  });
-  final String title;
-  final String? subtitle;
-  final String? actionLabel;
-  final VoidCallback? onAction;
-  final AppColors colors;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title,
-                  style: AppTextStyles.plusJakartaSans(
-                      fontSize: 15, fontWeight: FontWeight.w700, color: colors.text)),
-              if (subtitle != null)
-                Text(subtitle!,
-                    style: AppTextStyles.plusJakartaSans(fontSize: 12, color: colors.grey)),
-            ],
-          ),
-        ),
-        if (actionLabel != null && onAction != null)
-          GestureDetector(
-            onTap: onAction,
-            child: Text(actionLabel!,
-                style: AppTextStyles.plusJakartaSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: colors.primary)),
-          ),
-      ],
-    );
-  }
-}
-
 class _ViewAllButton extends StatelessWidget {
   const _ViewAllButton(
       {required this.label, required this.onTap, required this.colors});
@@ -305,11 +263,11 @@ class _EmptyStudents extends StatelessWidget {
         children: [
           Icon(Icons.school_outlined, size: 40.w, color: colors.grey),
           SizedBox(height: 10.h),
-          Text('No applications yet',
+          Text('No students yet',
               style: AppTextStyles.plusJakartaSans(
                   fontSize: 14, fontWeight: FontWeight.w600, color: colors.text)),
           SizedBox(height: 4.h),
-          Text('Tap + to submit your first application',
+          Text('Tap + to add your first student',
               style:
                   AppTextStyles.plusJakartaSans(fontSize: 12, color: colors.grey)),
         ],

@@ -52,7 +52,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return BlocBuilder<StudentBloc, StudentState>(
+    return BlocConsumer<StudentBloc, StudentState>(
+      listener: (context, state) {
+        if (state is StudentActionSuccess) {
+          context.read<StudentBloc>().add(const StudentAllLoadRequested());
+        }
+      },
       builder: (context, state) {
         final students =
             state is StudentLoaded ? state.students : <StudentEntity>[];

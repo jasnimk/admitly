@@ -1,5 +1,6 @@
 import 'package:admitly/core/constants/app_colors.dart';
 import 'package:admitly/core/constants/app_text_styles.dart';
+import 'package:admitly/core/widgets/app_bottom_sheet.dart';
 import 'package:admitly/core/widgets/app_button.dart';
 import 'package:admitly/core/widgets/app_snack_bar.dart';
 import 'package:admitly/features/payment/domain/entities/payment_entity.dart';
@@ -12,6 +13,9 @@ import 'package:admitly/injection_container.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
+
+const _kRazorpayKeyId = 'rzp_test_TvlQDkQAxJmT4S';
 
 Future<void> showRegistrationFeeSheet(
   BuildContext context, {
@@ -28,29 +32,92 @@ Future<void> showRegistrationFeeSheet(
   );
 }
 
-class _RegistrationFeeSheet extends StatelessWidget {
+class _RegistrationFeeSheet extends StatefulWidget {
   const _RegistrationFeeSheet({required this.student});
   final StudentEntity student;
 
-  void _pay(BuildContext context) {
-    final updated = student.copyWith(
+  @override
+  State<_RegistrationFeeSheet> createState() => _RegistrationFeeSheetState();
+}
+
+class _RegistrationFeeSheetState extends State<_RegistrationFeeSheet> {
+  late final Razorpay _razorpay;
+  bool _processing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _razorpay = Razorpay();
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _onPaymentSuccess);
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _onPaymentError);
+    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _onExternalWallet);
+  }
+
+  @override
+  void dispose() {
+    _razorpay.clear();
+    super.dispose();
+  }
+
+  void _onPaymentSuccess(PaymentSuccessResponse response) {
+    if (!mounted) return;
+    setState(() => _processing = true);
+
+    final updated = widget.student.copyWith(
       status: ApplicationStatus.feePaid,
       paymentStatus: 'paid',
     );
     context.read<StudentBloc>().add(StudentUpdateRequested(updated));
 
     sl<CreatePaymentUseCase>().call(PaymentEntity(
-      id: '',
-      studentId: student.id,
-      parentId: student.parentId,
+      id: response.paymentId ?? '',
+      studentId: widget.student.id,
+      studentName: widget.student.name,
+      parentId: widget.student.parentId,
+      parentEmail: widget.student.parentEmail ?? '',
       amount: 500,
       status: 'paid',
       paidAt: DateTime.now(),
     ));
   }
 
-  void _skip(BuildContext context) {
-    final updated = student.copyWith(
+  void _onPaymentError(PaymentFailureResponse response) {
+    if (!mounted) return;
+    setState(() => _processing = false);
+    AppSnackBar.show(
+      context,
+      response.message ?? 'Payment failed. Please try again.',
+      type: SnackBarType.error,
+    );
+  }
+
+  void _onExternalWallet(ExternalWalletResponse response) {
+    if (!mounted) return;
+    AppSnackBar.show(
+      context,
+      'External wallet selected: ${response.walletName}',
+      type: SnackBarType.success,
+    );
+  }
+
+  void _openRazorpay() {
+    final options = {
+      'key': _kRazorpayKeyId,
+      'amount': 50000, // in paise (₹500 = 50000 paise)
+      'currency': 'INR',
+      'name': 'Admitly',
+      'description': 'Registration Fee — ${widget.student.name}',
+      'prefill': {
+        'contact': '9999999999',
+        'email': widget.student.parentEmail ?? '',
+      },
+      'theme': {'color': '#15171F'},
+    };
+    _razorpay.open(options);
+  }
+
+  void _skip() {
+    final updated = widget.student.copyWith(
       status: ApplicationStatus.feeSkipped,
       paymentStatus: 'skipped',
     );
@@ -65,8 +132,11 @@ class _RegistrationFeeSheet extends StatelessWidget {
       listener: (context, state) {
         if (state is StudentActionSuccess) {
           Navigator.pop(context);
-          AppSnackBar.show(context, 'Updated successfully',
-              type: SnackBarType.success);
+          AppSnackBar.show(
+            context,
+            _processing ? 'Payment successful!' : 'Updated successfully',
+            type: SnackBarType.success,
+          );
         } else if (state is StudentError) {
           AppSnackBar.show(context, state.message, type: SnackBarType.error);
         }
@@ -76,18 +146,11 @@ class _RegistrationFeeSheet extends StatelessWidget {
           color: colors.background,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
         ),
-        padding: EdgeInsets.fromLTRB(24.w, 20.h, 24.w, 32.h),
+        padding: EdgeInsets.fromLTRB(24.w, 0, 24.w, 32.h),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 40.w,
-              height: 4.h,
-              decoration: BoxDecoration(
-                color: colors.border,
-                borderRadius: BorderRadius.circular(2.r),
-              ),
-            ),
+            const AppSheetHandle(),
             SizedBox(height: 20.h),
             Container(
               width: 60.w,
@@ -142,8 +205,10 @@ class _RegistrationFeeSheet extends StatelessWidget {
             BlocBuilder<StudentBloc, StudentState>(
               builder: (context, state) => AppButton(
                 label: 'Pay ₹500',
-                onPressed: () => _pay(context),
-                isLoading: state is StudentLoading,
+                onPressed: _processing || state is StudentLoading
+                    ? null
+                    : _openRazorpay,
+                isLoading: _processing || state is StudentLoading,
               ),
             ),
             SizedBox(height: 10.h),
@@ -151,7 +216,9 @@ class _RegistrationFeeSheet extends StatelessWidget {
               builder: (context, state) => AppButton(
                 label: 'Skip for Now',
                 variant: AppButtonVariant.outlined,
-                onPressed: state is StudentLoading ? null : () => _skip(context),
+                onPressed: _processing || state is StudentLoading
+                    ? null
+                    : _skip,
               ),
             ),
           ],

@@ -48,6 +48,7 @@ app.*.map.json
 *.pdf
 *.md
 !ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md
+!/README.md
 lib/firebase_options.dart
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist

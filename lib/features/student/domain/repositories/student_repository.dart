@@ -5,7 +5,7 @@ import 'package:dartz/dartz.dart';
 abstract class StudentRepository {
   Future<Either<Failure, StudentEntity>> createStudent(StudentEntity student);
   Future<Either<Failure, StudentEntity>> updateStudent(StudentEntity student);
+  Future<Either<Failure, void>> deleteStudent(String id);
   Future<Either<Failure, List<StudentEntity>>> getStudentsByParent(String parentId);
   Future<Either<Failure, List<StudentEntity>>> getAllStudents();
-  Future<Either<Failure, StudentEntity>> getStudentById(String id);
 }

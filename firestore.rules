@@ -57,7 +57,10 @@ service cloud.firestore {
         (isParent() && resource.data.parentId == request.auth.uid)
       );
 
-      allow delete: if false;
+      // Parent may delete only before slot booking (applicationCreated status)
+      allow delete: if isParent()
+        && resource.data.parentId == request.auth.uid
+        && resource.data.status == 'applicationCreated';
     }
 
     // ── Exam Slots ────────────────────────────────────────────────────────────
@@ -71,6 +74,22 @@ service cloud.firestore {
       allow read:   if isAuth();
       allow create: if isAdmissionTeam();
       allow update: if isAuth();
+      allow delete: if false;
+    }
+
+    // ── Payments ──────────────────────────────────────────────────────────────
+    // Parents can create and read their own payment records.
+    // Admission team can read all payments.
+    // No updates or deletes — payment records are immutable.
+
+    match /payments/{paymentId} {
+      allow read: if isAuth() && (
+        isAdmissionTeam() ||
+        resource.data.parentId == request.auth.uid
+      );
+      allow create: if isParent()
+        && request.resource.data.parentId == request.auth.uid;
+      allow update: if false;
       allow delete: if false;
     }
   }

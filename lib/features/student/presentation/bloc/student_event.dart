@@ -31,3 +31,10 @@ class StudentUpdateRequested extends StudentEvent {
   @override
   List<Object?> get props => [student];
 }
+
+class StudentDeleteRequested extends StudentEvent {
+  const StudentDeleteRequested(this.studentId);
+  final String studentId;
+  @override
+  List<Object?> get props => [studentId];
+}

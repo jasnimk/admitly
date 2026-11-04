@@ -143,14 +143,16 @@ class _CreateStudentSheetState extends State<_CreateStudentSheet> {
           Navigator.pop(context);
           AppSnackBar.show(
             context,
-            _isEditing ? 'Student updated' : 'Application submitted',
+            _isEditing ? 'Student updated' : 'Student added',
             type: SnackBarType.success,
           );
         } else if (state is StudentError) {
           AppSnackBar.show(context, state.message, type: SnackBarType.error);
         }
       },
-      child: DraggableScrollableSheet(
+      child: Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: DraggableScrollableSheet(
         initialChildSize: 0.9,
         minChildSize: 0.5,
         maxChildSize: 0.95,
@@ -176,7 +178,7 @@ class _CreateStudentSheetState extends State<_CreateStudentSheet> {
                 child: Row(
                   children: [
                     Text(
-                      _isEditing ? 'Edit Student' : 'New Application',
+                      _isEditing ? 'Edit Student' : 'New Student',
                       style: AppTextStyles.plusJakartaSans(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -340,7 +342,7 @@ class _CreateStudentSheetState extends State<_CreateStudentSheet> {
                         builder: (context, state) => AppButton(
                           label: _isEditing
                               ? 'Save Changes'
-                              : 'Submit Application',
+                              : 'Add Student',
                           onPressed: _submit,
                           isLoading: state is StudentLoading,
                         ),
@@ -352,6 +354,7 @@ class _CreateStudentSheetState extends State<_CreateStudentSheet> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

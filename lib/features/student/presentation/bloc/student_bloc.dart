@@ -1,5 +1,6 @@
 import 'package:admitly/core/utils/app_logger.dart';
 import 'package:admitly/features/student/domain/usecases/create_student_usecase.dart';
+import 'package:admitly/features/student/domain/usecases/delete_student_usecase.dart';
 import 'package:admitly/features/student/domain/usecases/get_students_usecase.dart';
 import 'package:admitly/features/student/domain/usecases/update_student_usecase.dart';
 import 'package:admitly/features/student/presentation/bloc/student_event.dart';
@@ -12,21 +13,25 @@ class StudentBloc extends Bloc<StudentEvent, StudentState> {
     required GetStudentsByParentUseCase getStudentsByParentUseCase,
     required GetAllStudentsUseCase getAllStudentsUseCase,
     required UpdateStudentUseCase updateStudentUseCase,
+    required DeleteStudentUseCase deleteStudentUseCase,
   })  : _create = createStudentUseCase,
         _getByParent = getStudentsByParentUseCase,
         _getAll = getAllStudentsUseCase,
         _update = updateStudentUseCase,
+        _delete = deleteStudentUseCase,
         super(const StudentInitial()) {
     on<StudentLoadRequested>(_onLoad);
     on<StudentAllLoadRequested>(_onLoadAll);
     on<StudentCreateRequested>(_onCreate);
     on<StudentUpdateRequested>(_onUpdate);
+    on<StudentDeleteRequested>(_onDelete);
   }
 
   final CreateStudentUseCase _create;
   final GetStudentsByParentUseCase _getByParent;
   final GetAllStudentsUseCase _getAll;
   final UpdateStudentUseCase _update;
+  final DeleteStudentUseCase _delete;
 
   Future<void> _onLoad(StudentLoadRequested event, Emitter<StudentState> emit) async {
     emit(const StudentLoading());
@@ -67,6 +72,15 @@ class StudentBloc extends Bloc<StudentEvent, StudentState> {
     result.fold(
       (f) => emit(StudentError(f.message)),
       (student) => emit(StudentActionSuccess(student)),
+    );
+  }
+
+  Future<void> _onDelete(StudentDeleteRequested event, Emitter<StudentState> emit) async {
+    emit(const StudentLoading());
+    final result = await _delete(event.studentId);
+    result.fold(
+      (f) => emit(StudentError(f.message)),
+      (_) => emit(const StudentActionSuccess(null)),
     );
   }
 }

@@ -214,7 +214,9 @@ class _CreateSlotSheetState extends State<_CreateSlotSheet> {
           AppSnackBar.show(context, state.message, type: SnackBarType.error);
         }
       },
-      child: DraggableScrollableSheet(
+      child: Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: DraggableScrollableSheet(
         initialChildSize: 0.78,
         maxChildSize: 0.95,
         minChildSize: 0.5,
@@ -445,6 +447,7 @@ class _CreateSlotSheetState extends State<_CreateSlotSheet> {
             ),
           );
         },
+      ),
       ),
     );
   }

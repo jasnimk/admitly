@@ -6,6 +6,9 @@ import 'package:admitly/core/widgets/app_snack_bar.dart';
 import 'package:admitly/features/auth/domain/entities/user_entity.dart';
 import 'package:admitly/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:admitly/features/auth/presentation/bloc/auth_event.dart';
+import 'package:admitly/features/payment/presentation/bloc/payment_bloc.dart';
+import 'package:admitly/features/payment/presentation/bloc/payment_event.dart';
+import 'package:admitly/features/payment/presentation/views/payment_history_screen.dart';
 import 'package:admitly/injection_container.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -37,6 +40,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _biometricAvailable = available;
       _biometricEnabled = enabled;
     });
+  }
+
+  Future<void> _confirmLogout(BuildContext context) async {
+    final colors = context.colors;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: colors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        title: Text(
+          'Log Out?',
+          style: AppTextStyles.plusJakartaSans(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: colors.text,
+          ),
+        ),
+        content: Text(
+          'You will need to sign in again to access the app.',
+          style: AppTextStyles.plusJakartaSans(fontSize: 14, color: colors.secondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              'Cancel',
+              style: AppTextStyles.plusJakartaSans(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: colors.secondary,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              'Log Out',
+              style: AppTextStyles.plusJakartaSans(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: colors.red,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      // ignore: use_build_context_synchronously
+      context.read<AuthBloc>().add(const AuthLogoutRequested());
+    }
   }
 
   Future<void> _toggleBiometric(bool value) async {
@@ -116,6 +170,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         SizedBox(height: 28.h),
+        if (widget.user.role != UserRole.parent) ...[
+          _SectionCard(
+            colors: colors,
+            children: [
+              _ActionTile(
+                icon: Icons.receipt_long_outlined,
+                label: 'Payment History',
+                color: colors.text,
+                colors: colors,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider(
+                      create: (_) => sl<PaymentBloc>()
+                        ..add(const PaymentLoadAllRequested()),
+                      child: Scaffold(
+                        backgroundColor: colors.background,
+                        appBar: AppBar(
+                          backgroundColor: colors.background,
+                          elevation: 0,
+                          leading: IconButton(
+                            icon: Icon(Icons.arrow_back_ios_new_rounded,
+                                size: 18.w, color: colors.text),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          title: Text(
+                            'Payment History',
+                            style: AppTextStyles.plusJakartaSans(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                              color: colors.text,
+                            ),
+                          ),
+                        ),
+                        body: const PaymentHistoryScreen(),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+        ],
         _SectionCard(
           colors: colors,
           children: [
@@ -134,7 +232,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               label: 'Log Out',
               color: colors.red,
               colors: colors,
-              onTap: () => context.read<AuthBloc>().add(const AuthLogoutRequested()),
+              onTap: () => _confirmLogout(context),
             ),
           ],
         ),

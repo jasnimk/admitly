@@ -6,9 +6,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 abstract class StudentRemoteDataSource {
   Future<StudentModel> createStudent(StudentEntity student);
   Future<StudentModel> updateStudent(StudentEntity student);
+  Future<void> deleteStudent(String id);
   Future<List<StudentModel>> getStudentsByParent(String parentId);
   Future<List<StudentModel>> getAllStudents();
-  Future<StudentModel> getStudentById(String id);
 }
 
 class StudentRemoteDataSourceImpl implements StudentRemoteDataSource {
@@ -34,6 +34,12 @@ class StudentRemoteDataSourceImpl implements StudentRemoteDataSource {
     await doc.set(model.toMap());
     appLogger.i('Student created: ${doc.id}');
     return model;
+  }
+
+  @override
+  Future<void> deleteStudent(String id) async {
+    await _col.doc(id).delete();
+    appLogger.i('Student deleted: $id');
   }
 
   @override
@@ -77,10 +83,4 @@ class StudentRemoteDataSourceImpl implements StudentRemoteDataSource {
         .toList();
   }
 
-  @override
-  Future<StudentModel> getStudentById(String id) async {
-    final doc = await _col.doc(id).get();
-    if (!doc.exists) throw Exception('Student not found');
-    return StudentModel.fromMap(doc.id, doc.data() as Map<String, dynamic>);
-  }
 }

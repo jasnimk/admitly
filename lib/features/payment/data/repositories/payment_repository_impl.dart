@@ -18,4 +18,22 @@ class PaymentRepositoryImpl implements PaymentRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, List<PaymentEntity>>> getPaymentsByParent(String parentId) async {
+    try {
+      return Right(await _datasource.getPaymentsByParent(parentId));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<PaymentEntity>>> getAllPayments() async {
+    try {
+      return Right(await _datasource.getAllPayments());
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

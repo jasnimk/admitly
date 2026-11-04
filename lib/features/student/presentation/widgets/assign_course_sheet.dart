@@ -1,5 +1,6 @@
 import 'package:admitly/core/constants/app_colors.dart';
 import 'package:admitly/core/constants/app_text_styles.dart';
+import 'package:admitly/core/widgets/app_bottom_sheet.dart';
 import 'package:admitly/core/widgets/app_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -8,23 +9,21 @@ Future<String?> showAssignCourseSheet(
   BuildContext context, {
   String? existingCourse,
 }) {
-  return showModalBottomSheet<String>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (_) => _AssignCourseSheet(existingCourse: existingCourse),
+  return AppBottomSheet.show<String>(
+    context,
+    child: _AssignCourseContent(existingCourse: existingCourse),
   );
 }
 
-class _AssignCourseSheet extends StatefulWidget {
-  const _AssignCourseSheet({this.existingCourse});
+class _AssignCourseContent extends StatefulWidget {
+  const _AssignCourseContent({this.existingCourse});
   final String? existingCourse;
 
   @override
-  State<_AssignCourseSheet> createState() => _AssignCourseSheetState();
+  State<_AssignCourseContent> createState() => _AssignCourseContentState();
 }
 
-class _AssignCourseSheetState extends State<_AssignCourseSheet> {
+class _AssignCourseContentState extends State<_AssignCourseContent> {
   late final TextEditingController _ctrl;
   String? _error;
 
@@ -62,123 +61,76 @@ class _AssignCourseSheetState extends State<_AssignCourseSheet> {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: Container(
-        decoration: BoxDecoration(
-          color: colors.background,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppSheetHeader(
+          icon: Icons.school_outlined,
+          title: widget.existingCourse != null ? 'Update Course' : 'Assign Course',
         ),
-        padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 32.h),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Handle
-            Center(
-              child: Container(
-                margin: EdgeInsets.symmetric(vertical: 12.h),
-                width: 40.w,
-                height: 4.h,
+        SizedBox(height: 20.h),
+        Text(
+          'Quick pick',
+          style: AppTextStyles.plusJakartaSans(
+              fontSize: 12, fontWeight: FontWeight.w600, color: colors.grey),
+        ),
+        SizedBox(height: 10.h),
+        Wrap(
+          spacing: 8.w,
+          runSpacing: 8.h,
+          children: _suggestions.map((s) {
+            final selected = _ctrl.text.trim() == s;
+            return GestureDetector(
+              onTap: () => setState(() {
+                _ctrl.text = s;
+                _ctrl.selection =
+                    TextSelection.fromPosition(TextPosition(offset: s.length));
+                _error = null;
+              }),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 120),
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                 decoration: BoxDecoration(
-                  color: colors.grey.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(2.r),
-                ),
-              ),
-            ),
-            // Header
-            Row(
-              children: [
-                Container(
-                  padding: EdgeInsets.all(10.w),
-                  decoration: BoxDecoration(
-                    color: colors.primary.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12.r),
+                  color: selected ? colors.primary : colors.canvas,
+                  borderRadius: BorderRadius.circular(20.r),
+                  border: Border.all(
+                    color: selected ? colors.primary : colors.border,
                   ),
-                  child: Icon(Icons.school_outlined, size: 22.w, color: colors.primary),
                 ),
-                SizedBox(width: 12.w),
-                Text(
-                  widget.existingCourse != null ? 'Update Course' : 'Assign Course',
+                child: Text(
+                  s,
                   style: AppTextStyles.plusJakartaSans(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: colors.text,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: selected ? Colors.white : colors.text,
                   ),
                 ),
-              ],
-            ),
-            SizedBox(height: 20.h),
-            // Quick picks
-            Text(
-              'Quick pick',
-              style: AppTextStyles.plusJakartaSans(
-                  fontSize: 12, fontWeight: FontWeight.w600, color: colors.grey),
-            ),
-            SizedBox(height: 10.h),
-            Wrap(
-              spacing: 8.w,
-              runSpacing: 8.h,
-              children: _suggestions.map((s) {
-                final selected = _ctrl.text.trim() == s;
-                return GestureDetector(
-                  onTap: () => setState(() {
-                    _ctrl.text = s;
-                    _ctrl.selection = TextSelection.fromPosition(
-                      TextPosition(offset: s.length),
-                    );
-                    _error = null;
-                  }),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 120),
-                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                    decoration: BoxDecoration(
-                      color: selected
-                          ? colors.primary
-                          : colors.canvas,
-                      borderRadius: BorderRadius.circular(20.r),
-                      border: Border.all(
-                        color: selected ? colors.primary : colors.border,
-                      ),
-                    ),
-                    child: Text(
-                      s,
-                      style: AppTextStyles.plusJakartaSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: selected ? Colors.white : colors.text,
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-            SizedBox(height: 20.h),
-            // Free-text field
-            TextField(
-              controller: _ctrl,
-              autofocus: false,
-              onChanged: (_) => setState(() => _error = null),
-              style: AppTextStyles.plusJakartaSans(fontSize: 14, color: colors.text),
-              decoration: InputDecoration(
-                hintText: 'Or type a custom course…',
-                hintStyle: AppTextStyles.plusJakartaSans(fontSize: 14, color: colors.grey),
-                filled: true,
-                fillColor: colors.canvas,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                  borderSide: BorderSide.none,
-                ),
-                errorText: _error,
-                errorStyle:
-                    AppTextStyles.plusJakartaSans(fontSize: 12, color: colors.error),
               ),
-            ),
-            SizedBox(height: 24.h),
-            AppButton(label: 'Assign', onPressed: _submit),
-          ],
+            );
+          }).toList(),
         ),
-      ),
+        SizedBox(height: 20.h),
+        TextField(
+          controller: _ctrl,
+          onChanged: (_) => setState(() => _error = null),
+          style: AppTextStyles.plusJakartaSans(fontSize: 14, color: colors.text),
+          decoration: InputDecoration(
+            hintText: 'Or type a custom course…',
+            hintStyle: AppTextStyles.plusJakartaSans(fontSize: 14, color: colors.grey),
+            filled: true,
+            fillColor: colors.canvas,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide.none,
+            ),
+            errorText: _error,
+            errorStyle: AppTextStyles.plusJakartaSans(fontSize: 12, color: colors.error),
+          ),
+        ),
+        SizedBox(height: 24.h),
+        AppButton(label: 'Assign', onPressed: _submit),
+      ],
     );
   }
 }

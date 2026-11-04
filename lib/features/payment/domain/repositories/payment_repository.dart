@@ -4,4 +4,6 @@ import 'package:dartz/dartz.dart';
 
 abstract class PaymentRepository {
   Future<Either<Failure, void>> createPayment(PaymentEntity payment);
+  Future<Either<Failure, List<PaymentEntity>>> getPaymentsByParent(String parentId);
+  Future<Either<Failure, List<PaymentEntity>>> getAllPayments();
 }
