@@ -11,16 +11,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class AdminApplicationsScreen extends StatefulWidget {
-  const AdminApplicationsScreen({super.key, required this.user});
+class StudentsScreen extends StatefulWidget {
+  const StudentsScreen({super.key, required this.user});
   final UserEntity user;
 
   @override
-  State<AdminApplicationsScreen> createState() =>
-      _AdminApplicationsScreenState();
+  State<StudentsScreen> createState() => _StudentsScreenState();
 }
 
-class _AdminApplicationsScreenState extends State<AdminApplicationsScreen>
+class _StudentsScreenState extends State<StudentsScreen>
     with SingleTickerProviderStateMixin {
   static const _tabs = <(ApplicationStatus?, String)>[
     (null, 'All'),

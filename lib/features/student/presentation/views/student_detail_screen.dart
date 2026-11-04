@@ -1,23 +1,27 @@
 import 'package:admitly/core/constants/app_colors.dart';
 import 'package:admitly/core/constants/app_text_styles.dart';
-import 'package:admitly/core/widgets/app_status_badge.dart';
 import 'package:admitly/features/auth/domain/entities/user_entity.dart';
-import 'package:admitly/features/exam_slot/domain/entities/exam_slot_entity.dart';
-import 'package:admitly/features/exam_slot/domain/usecases/get_all_slots_usecase.dart';
 import 'package:admitly/features/exam_slot/presentation/widgets/book_slot_sheet.dart';
-import 'package:admitly/injection_container.dart' show sl;
 import 'package:admitly/features/student/domain/entities/student_entity.dart';
 import 'package:admitly/features/student/presentation/bloc/student_bloc.dart';
 import 'package:admitly/features/student/presentation/bloc/student_event.dart';
 import 'package:admitly/features/student/presentation/bloc/student_state.dart';
-import 'package:admitly/features/student/presentation/widgets/create_student_sheet.dart';
+import 'package:admitly/features/student/presentation/widgets/admin_action_row.dart';
 import 'package:admitly/features/student/presentation/widgets/assign_course_sheet.dart';
+import 'package:admitly/features/student/presentation/widgets/contact_button.dart';
+import 'package:admitly/features/student/presentation/widgets/create_student_sheet.dart';
 import 'package:admitly/features/student/presentation/widgets/enter_score_sheet.dart';
+import 'package:admitly/features/student/presentation/widgets/exam_result_card.dart';
 import 'package:admitly/features/student/presentation/widgets/registration_fee_sheet.dart';
+import 'package:admitly/features/student/presentation/widgets/slot_info_card.dart';
+import 'package:admitly/features/student/presentation/widgets/student_action_button.dart';
+import 'package:admitly/features/student/presentation/widgets/student_details_card.dart';
+import 'package:admitly/features/student/presentation/widgets/student_header_card.dart';
+import 'package:admitly/features/student/presentation/widgets/student_info_banner.dart';
+import 'package:admitly/features/student/presentation/widgets/student_status_stepper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class StudentDetailScreen extends StatefulWidget {
@@ -105,6 +109,42 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     }
   }
 
+  Future<void> _onEnterScore() async {
+    final score = await showEnterScoreSheet(
+      context,
+      studentName: _student.name,
+      existingScore: _student.examScore,
+    );
+    if (score == null || !mounted) return;
+    context.read<StudentBloc>().add(
+          StudentUpdateRequested(
+            _student.copyWith(
+              examScore: score,
+              status: ApplicationStatus.examCompleted,
+            ),
+          ),
+        );
+  }
+
+  Future<void> _onAssignCourse() async {
+    final course = await showAssignCourseSheet(
+      context,
+      existingCourse: _student.assignedCourse,
+    );
+    if (course == null || !mounted) return;
+    context.read<StudentBloc>().add(
+          StudentUpdateRequested(_student.copyWith(assignedCourse: course)),
+        );
+  }
+
+  void _onCompleteAdmission() {
+    context.read<StudentBloc>().add(
+          StudentUpdateRequested(
+            _student.copyWith(status: ApplicationStatus.admissionCompleted),
+          ),
+        );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
@@ -113,10 +153,12 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     return BlocListener<StudentBloc, StudentState>(
       listener: (context, state) {
         if (state is StudentLoaded) {
-          final updated = state.students
-              .where((s) => s.id == _student.id)
-              .firstOrNull;
+          final updated =
+              state.students.where((s) => s.id == _student.id).firstOrNull;
           if (updated != null) setState(() => _student = updated);
+        }
+        if (state is StudentActionSuccess && state.student != null) {
+          setState(() => _student = state.student!);
         }
         if (state is StudentActionSuccess && state.student == null) {
           Navigator.pop(context);
@@ -128,8 +170,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
           backgroundColor: colors.background,
           elevation: 0,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_ios_new_rounded,
-                size: 18.w, color: colors.text),
+            icon: Icon(Icons.arrow_back_ios_new_rounded, size: 18.w, color: colors.text),
             onPressed: () => Navigator.pop(context),
           ),
           title: Text(
@@ -157,21 +198,18 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
         body: ListView(
           padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 40.h),
           children: [
-            _HeaderCard(student: _student, colors: colors),
+            StudentHeaderCard(student: _student),
             SizedBox(height: 16.h),
-            _StatusStepper(status: _student.status, colors: colors),
+            StudentStatusStepper(status: _student.status),
             SizedBox(height: 16.h),
-            _DetailsCard(student: _student, colors: colors),
+            StudentDetailsCard(student: _student),
             if (_student.examSlotId != null) ...[
               SizedBox(height: 16.h),
-              _SlotInfoCard(slotId: _student.examSlotId!, colors: colors),
+              SlotInfoCard(slotId: _student.examSlotId!),
             ],
             if (_student.examScore != null) ...[
               SizedBox(height: 16.h),
-              _ExamResultCard(
-                  score: _student.examScore!,
-                  course: _student.assignedCourse,
-                  colors: colors),
+              ExamResultCard(score: _student.examScore!, course: _student.assignedCourse),
             ],
             SizedBox(height: 24.h),
             if (!isParent) _contactSection(colors),
@@ -181,44 +219,6 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
         ),
       ),
     );
-  }
-
-  Future<void> _onEnterScore() async {
-    final score = await showEnterScoreSheet(
-      context,
-      studentName: _student.name,
-      existingScore: _student.examScore,
-    );
-    if (score == null || !mounted) return;
-    context.read<StudentBloc>().add(
-          StudentUpdateRequested(
-            _student.copyWith(
-              examScore: score,
-              status: ApplicationStatus.examCompleted,
-            ),
-          ),
-        );
-  }
-
-  Future<void> _onAssignCourse() async {
-    final course = await showAssignCourseSheet(
-      context,
-      existingCourse: _student.assignedCourse,
-    );
-    if (course == null || !mounted) return;
-    context.read<StudentBloc>().add(
-          StudentUpdateRequested(
-            _student.copyWith(assignedCourse: course),
-          ),
-        );
-  }
-
-  void _onCompleteAdmission() {
-    context.read<StudentBloc>().add(
-          StudentUpdateRequested(
-            _student.copyWith(status: ApplicationStatus.admissionCompleted),
-          ),
-        );
   }
 
   Widget _contactSection(AppColors colors) {
@@ -239,24 +239,32 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
           children: [
             if (phone != null) ...[
               Expanded(
-                child: _ContactButton(
+                child: ContactButton(
                   icon: Icons.call_outlined,
                   label: 'Call',
                   color: colors.primary,
-                  colors: colors,
-                  onTap: () async { try { await launchUrl(Uri(scheme: 'tel', path: phone), mode: LaunchMode.externalApplication); } catch (_) {} },
+                  onTap: () async {
+                    try {
+                      await launchUrl(Uri(scheme: 'tel', path: phone),
+                          mode: LaunchMode.externalApplication);
+                    } catch (_) {}
+                  },
                 ),
               ),
               if (email != null) SizedBox(width: 12.w),
             ],
             if (email != null)
               Expanded(
-                child: _ContactButton(
+                child: ContactButton(
                   icon: Icons.email_outlined,
                   label: 'Email',
                   color: colors.accent,
-                  colors: colors,
-                  onTap: () async { try { await launchUrl(Uri(scheme: 'mailto', path: email), mode: LaunchMode.externalApplication); } catch (_) {} },
+                  onTap: () async {
+                    try {
+                      await launchUrl(Uri(scheme: 'mailto', path: email),
+                          mode: LaunchMode.externalApplication);
+                    } catch (_) {}
+                  },
                 ),
               ),
           ],
@@ -268,32 +276,30 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 
   Widget _adminActions(AppColors colors) {
     return switch (_student.status) {
-      ApplicationStatus.slotBooked => _ActionButton(
+      ApplicationStatus.slotBooked => StudentActionButton(
           label: 'Enter Exam Score',
           icon: Icons.quiz_outlined,
           color: colors.accent,
           onTap: _onEnterScore,
         ),
       ApplicationStatus.examCompleted when _student.assignedCourse == null =>
-        _AdminActionWithEditScore(
-          primary: _ActionButton(
+        AdminActionRow(
+          primary: StudentActionButton(
             label: 'Assign Course',
             icon: Icons.book_outlined,
             color: colors.accent,
             onTap: _onAssignCourse,
           ),
           onEditScore: _onEnterScore,
-          colors: colors,
         ),
-      ApplicationStatus.examCompleted => _AdminActionWithEditScore(
-          primary: _ActionButton(
+      ApplicationStatus.examCompleted => AdminActionRow(
+          primary: StudentActionButton(
             label: 'Complete Admission',
             icon: Icons.check_circle_outline_rounded,
             color: colors.primary,
             onTap: _onCompleteAdmission,
           ),
           onEditScore: _onEnterScore,
-          colors: colors,
         ),
       _ => const SizedBox.shrink(),
     };
@@ -301,594 +307,32 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 
   Widget _parentActions(AppColors colors) {
     return switch (_student.status) {
-      ApplicationStatus.applicationCreated => _ActionButton(
+      ApplicationStatus.applicationCreated => StudentActionButton(
           label: 'Pay Registration Fee',
           icon: Icons.payment_outlined,
           color: colors.primary,
           onTap: _onFeeAction,
         ),
-      ApplicationStatus.feePaid ||
-      ApplicationStatus.feeSkipped =>
-        _ActionButton(
+      ApplicationStatus.feePaid || ApplicationStatus.feeSkipped =>
+        StudentActionButton(
           label: 'Book Exam Slot',
           icon: Icons.calendar_month_outlined,
           color: colors.accent,
           onTap: _onBookSlot,
         ),
-      ApplicationStatus.slotBooked => _InfoBanner(
+      ApplicationStatus.slotBooked => const StudentInfoBanner(
           icon: Icons.hourglass_top_rounded,
           message: 'Exam slot confirmed. Please arrive on time on the exam day.',
-          colors: colors,
         ),
-      ApplicationStatus.examCompleted => _InfoBanner(
+      ApplicationStatus.examCompleted => const StudentInfoBanner(
           icon: Icons.pending_outlined,
           message: 'Exam completed. The school is reviewing results.',
-          colors: colors,
         ),
-      _ => _InfoBanner(
+      _ => const StudentInfoBanner(
           icon: Icons.celebration_outlined,
           message: 'Congratulations! Admission is complete.',
-          colors: colors,
           success: true,
         ),
     };
-  }
-}
-
-class _HeaderCard extends StatelessWidget {
-  const _HeaderCard({required this.student, required this.colors});
-  final StudentEntity student;
-  final AppColors colors;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: colors.border),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 56.w,
-            height: 56.w,
-            decoration: BoxDecoration(
-              color: colors.primary.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.person_rounded, size: 28.w, color: colors.primary),
-          ),
-          SizedBox(width: 14.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  student.name,
-                  style: AppTextStyles.plusJakartaSans(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: colors.text,
-                  ),
-                ),
-                SizedBox(height: 2.h),
-                Text(
-                  student.applyingGrade,
-                  style: AppTextStyles.plusJakartaSans(
-                      fontSize: 13, color: colors.grey),
-                ),
-              ],
-            ),
-          ),
-          _StatusBadge(status: student.status),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatusStepper extends StatelessWidget {
-  const _StatusStepper({required this.status, required this.colors});
-  final ApplicationStatus status;
-  final AppColors colors;
-
-  static const _steps = [
-    (ApplicationStatus.applicationCreated, 'Applied', Icons.assignment_outlined),
-    (ApplicationStatus.feePaid, 'Fee', Icons.receipt_outlined),
-    (ApplicationStatus.slotBooked, 'Slot Booked', Icons.event_outlined),
-    (ApplicationStatus.examCompleted, 'Exam', Icons.quiz_outlined),
-    (ApplicationStatus.admissionCompleted, 'Admitted', Icons.school_outlined),
-  ];
-
-  int get _currentIndex {
-    if (status == ApplicationStatus.feeSkipped) return 1;
-    return _steps.indexWhere((s) => s.$1 == status);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final current = _currentIndex;
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: colors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Application Progress',
-            style: AppTextStyles.plusJakartaSans(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: colors.grey,
-            ),
-          ),
-          SizedBox(height: 14.h),
-          Row(
-            children: List.generate(_steps.length * 2 - 1, (i) {
-              if (i.isOdd) {
-                final stepIndex = i ~/ 2;
-                final done = stepIndex < current;
-                return Expanded(
-                  child: Container(
-                    height: 2.h,
-                    color: done ? colors.primary : colors.border,
-                  ),
-                );
-              }
-              final stepIndex = i ~/ 2;
-              final done = stepIndex < current;
-              final active = stepIndex == current;
-              final (_, label, icon) = _steps[stepIndex];
-              return Column(
-                children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: 32.w,
-                    height: 32.w,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: done || active
-                          ? colors.primary
-                          : colors.background,
-                      border: Border.all(
-                        color: done || active ? colors.primary : colors.border,
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Icon(
-                      done ? Icons.check_rounded : icon,
-                      size: 14.w,
-                      color: done || active ? Colors.white : colors.grey,
-                    ),
-                  ),
-                  SizedBox(height: 6.h),
-                  SizedBox(
-                    width: 52.w,
-                    child: Text(
-                      label,
-                      textAlign: TextAlign.center,
-                      style: AppTextStyles.plusJakartaSans(
-                        fontSize: 9,
-                        fontWeight: active
-                            ? FontWeight.w700
-                            : FontWeight.w400,
-                        color: active ? colors.primary : colors.grey,
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            }),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DetailsCard extends StatelessWidget {
-  const _DetailsCard({required this.student, required this.colors});
-  final StudentEntity student;
-  final AppColors colors;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: colors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Student Details',
-            style: AppTextStyles.plusJakartaSans(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: colors.grey,
-            ),
-          ),
-          SizedBox(height: 12.h),
-          _detailRow('Date of Birth',
-              DateFormat('dd MMM yyyy').format(student.dateOfBirth), colors),
-          _detailRow('Gender',
-              student.gender.name[0].toUpperCase() +
-                  student.gender.name.substring(1),
-              colors),
-          _detailRow('Previous School', student.previousSchool, colors),
-          _detailRow('Applying For', student.applyingGrade, colors),
-          _detailRow(
-            'Applied On',
-            DateFormat('dd MMM yyyy').format(student.createdAt),
-            colors,
-            isLast: student.paymentStatus == null,
-          ),
-          if (student.paymentStatus != null)
-            _detailRow(
-              'Fee Status',
-              student.paymentStatus![0].toUpperCase() +
-                  student.paymentStatus!.substring(1),
-              colors,
-              isLast: true,
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _detailRow(String label, String value, AppColors colors,
-      {bool isLast = false}) {
-    return Column(
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(vertical: 8.h),
-          child: Row(
-            children: [
-              Text(label,
-                  style: AppTextStyles.plusJakartaSans(
-                      fontSize: 13, color: colors.grey)),
-              const Spacer(),
-              Text(value,
-                  style: AppTextStyles.plusJakartaSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: colors.text,
-                  )),
-            ],
-          ),
-        ),
-        if (!isLast) Divider(color: colors.border, height: 1),
-      ],
-    );
-  }
-}
-
-class _SlotInfoCard extends StatefulWidget {
-  const _SlotInfoCard({required this.slotId, required this.colors});
-  final String slotId;
-  final AppColors colors;
-
-  @override
-  State<_SlotInfoCard> createState() => _SlotInfoCardState();
-}
-
-class _SlotInfoCardState extends State<_SlotInfoCard> {
-  ExamSlotEntity? _slot;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadSlot();
-  }
-
-  Future<void> _loadSlot() async {
-    final result = await sl<GetAllSlotsUseCase>().call();
-    result.fold((_) {}, (slots) {
-      final match = slots.where((s) => s.id == widget.slotId).firstOrNull;
-      if (match != null && mounted) setState(() => _slot = match);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = widget.colors;
-    final slot = _slot;
-
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: colors.accent.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: colors.accent.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.event_available_outlined, color: colors.accent, size: 22.w),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: slot == null
-                ? Text('Exam Slot Booked',
-                    style: AppTextStyles.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: colors.accent))
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Exam Slot Confirmed',
-                          style: AppTextStyles.plusJakartaSans(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: colors.accent,
-                          )),
-                      SizedBox(height: 4.h),
-                      Text(
-                        '${DateFormat('EEE, dd MMM yyyy').format(slot.date)}  ·  ${slot.timeLabel}',
-                        style: AppTextStyles.plusJakartaSans(
-                            fontSize: 12, color: colors.accent),
-                      ),
-                      Text(
-                        slot.venue,
-                        style: AppTextStyles.plusJakartaSans(
-                            fontSize: 12,
-                            color: colors.accent.withValues(alpha: 0.7)),
-                      ),
-                    ],
-                  ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ExamResultCard extends StatelessWidget {
-  const _ExamResultCard(
-      {required this.score, required this.course, required this.colors});
-  final int score;
-  final String? course;
-  final AppColors colors;
-
-  @override
-  Widget build(BuildContext context) {
-    final passed = score >= 40;
-    final color = passed ? colors.primary : colors.red;
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            passed ? Icons.emoji_events_outlined : Icons.cancel_outlined,
-            color: color,
-            size: 24.w,
-          ),
-          SizedBox(width: 12.w),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Exam Score: $score / 100',
-                  style: AppTextStyles.plusJakartaSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: color,
-                  )),
-              if (course != null)
-                Text('Assigned: $course',
-                    style: AppTextStyles.plusJakartaSans(
-                        fontSize: 12, color: colors.grey)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AdminActionWithEditScore extends StatelessWidget {
-  const _AdminActionWithEditScore({
-    required this.primary,
-    required this.onEditScore,
-    required this.colors,
-  });
-  final Widget primary;
-  final VoidCallback onEditScore;
-  final AppColors colors;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        primary,
-        SizedBox(height: 8.h),
-        GestureDetector(
-          onTap: onEditScore,
-          child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 8.h),
-            child: Text(
-              'Edit Exam Score',
-              style: AppTextStyles.plusJakartaSans(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: colors.grey,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ActionButton extends StatelessWidget {
-  const _ActionButton({
-    required this.label,
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  });
-  final String label;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(16.w),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(14.r),
-          border: Border.all(color: color.withValues(alpha: 0.2)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40.w,
-              height: 40.w,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10.r),
-              ),
-              child: Icon(icon, size: 20.w, color: color),
-            ),
-            SizedBox(width: 14.w),
-            Text(
-              label,
-              style: AppTextStyles.plusJakartaSans(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: color,
-              ),
-            ),
-            const Spacer(),
-            Icon(Icons.arrow_forward_ios_rounded, size: 14.w, color: color),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Thin adapter: maps ApplicationStatus → color, then delegates to AppStatusBadge.
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.status});
-  final ApplicationStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final color = switch (status) {
-      ApplicationStatus.applicationCreated => colors.subtle,
-      ApplicationStatus.feePaid           => colors.accent,
-      ApplicationStatus.feeSkipped        => colors.subtle,
-      ApplicationStatus.slotBooked        => colors.accent,
-      ApplicationStatus.examCompleted     => colors.accent,
-      ApplicationStatus.admissionCompleted => colors.primary,
-    };
-    return AppStatusBadge(label: status.label, color: color);
-  }
-}
-
-class _ContactButton extends StatelessWidget {
-  const _ContactButton({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.colors,
-    required this.onTap,
-  });
-  final IconData icon;
-  final String label;
-  final Color color;
-  final AppColors colors;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 13.h),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.07),
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: color.withValues(alpha: 0.25)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 17.w, color: color),
-            SizedBox(width: 7.w),
-            Text(
-              label,
-              style: AppTextStyles.plusJakartaSans(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: color),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoBanner extends StatelessWidget {
-  const _InfoBanner({
-    required this.icon,
-    required this.message,
-    required this.colors,
-    this.success = false,
-  });
-  final IconData icon;
-  final String message;
-  final AppColors colors;
-  final bool success;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = success ? colors.primary : colors.fog;
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 20.w, color: color),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Text(
-              message,
-              style: AppTextStyles.plusJakartaSans(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: color,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

@@ -1,6 +1,6 @@
 import 'package:admitly/core/constants/app_colors.dart';
 import 'package:admitly/core/constants/app_text_styles.dart';
-import 'package:admitly/features/admin/presentation/views/admin_applications_screen.dart';
+import 'package:admitly/features/student/presentation/views/students_screen.dart';
 import 'package:admitly/features/auth/domain/entities/user_entity.dart';
 import 'package:admitly/features/exam_slot/presentation/bloc/exam_slot_bloc.dart';
 import 'package:admitly/features/exam_slot/presentation/views/exam_slots_screen.dart';
@@ -81,7 +81,7 @@ class _MainShellState extends State<MainShell> {
           label: 'Students',
           icon: Icons.people_outline_rounded,
           activeIcon: Icons.people_rounded,
-          page: AdminApplicationsScreen(user: widget.user),
+          page: StudentsScreen(user: widget.user),
         ),
         const _ShellTab(
           title: 'Exam Slots',
